@@ -34,8 +34,8 @@ namespace ShuntingYardParser.Parser {
         };
 
         private ExpressionLexer Lexer { get; set; }
-        protected Stack<Token> Operators { get; set; }
-        protected Stack<TOperand> Operands { get; set; }
+        protected Stack<Token> Operators { get; private set; }
+        protected Stack<TOperand> Operands { get; private set; }
 
         public ShuntingYardParser(ExpressionLexer lexer) {
             Lexer = lexer;
