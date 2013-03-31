@@ -1,2 +1,35 @@
 ParserSamples
 =============
+
+Implements a parser that accepts a mathematical expression in infix notation and
+outputs the corresponding prefix and postfix notation in addition to the abstract
+syntax tree for the expression. The parser adheres to the common rules of associativity
+and precedence.
+
+Here's an example of running the console application:
+
+	> 2 + 5 * 7
+	Value: 37
+	Prefix notation: + 2 * 5 7
+	Postfix notation: 2 5 7 * +
+	Flat expression tree: +(2, *(5, 7))
+	Hierarchical expression tree:
+
+	BinaryPlus
+		Literal (2)
+		BinaryMul
+			Literal (5)
+			Literal (7)
+
+	> (2 + 5) * 7
+	Value: 49
+	Prefix notation: * + 2 5 7
+	Postfix notation: 2 5 + 7 *
+	Flat expression tree: *(+(2, 5), 7)
+	Hierarchical expression tree:
+
+	BinaryMul
+		BinaryPlus
+			Literal (2)
+			Literal (5)
+		Literal (7)
