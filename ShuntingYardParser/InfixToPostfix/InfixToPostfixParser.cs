@@ -24,7 +24,7 @@ namespace ShuntingYardParser.InfixToPostfix {
                 Operands.Push(new Token {
                     Type = TokenType.Literal,
                     Lexeme = string.Format(
-                        "{0} {1}", operand.Lexeme, op.Lexeme )
+                        "{0} {1}", operand.Lexeme, op.Lexeme)
                 });
             }
             else {
