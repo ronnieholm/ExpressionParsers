@@ -11,9 +11,7 @@ namespace ShuntingYardParser.InfixToAbstractSyntaxTree {
         public InfixToAbstractSyntaxTreeParser(ExpressionLexer lexer) : base(lexer) { }
 
         protected override void PushOperand(Token t) {
-            if (t.Type == TokenType.Literal) {
-                Operands.Push(new Literal { Value = Int32.Parse(t.Lexeme) });
-            }
+            Operands.Push(new Literal { Value = Int32.Parse(t.Lexeme) });
         }
 
         protected override void ReduceExpression() {
