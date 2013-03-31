@@ -12,11 +12,11 @@ using ShuntingYardParser.InfixToAbstractSyntaxTree;
 namespace ShuntingYardParser {
     public class Program {
         public static void Main(String[] args) {
-            TestVariousExpression();
+            TestVariousExpressions();
             ExecuteREPL();
         }
 
-        private static void TestVariousExpression() {
+        private static void TestVariousExpressions() {
             string[][] expressions = {
                 // infix, value, prefix, postfix, AST
                 new[] { "2", "2", "2", "2", "2" },
