@@ -64,8 +64,8 @@ namespace ShuntingYardParser {
                 Console.WriteLine("Value: " + value);
                 Console.WriteLine("Prefix notation: " + prefix.Lexeme);
                 Console.WriteLine("Postfix notation: " + postfix.Lexeme);
-                Console.WriteLine("Flat expression tree: " + flatPrinter.Print(expression));
-                Console.WriteLine("Hierarchical expression tree: " + Environment.NewLine);
+                Console.WriteLine("Flat syntax tree: " + flatPrinter.Print(expression));
+                Console.WriteLine("Hierarchical syntax tree: " + Environment.NewLine);
                 Console.WriteLine(HierarchicalPrinter.Print(expression));
             }
         }

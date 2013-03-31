@@ -12,8 +12,8 @@ Here's an example of running the application:
 	Value: 37
 	Prefix notation: + 2 * 5 7
 	Postfix notation: 2 5 7 * +
-	Flat expression tree: +(2, *(5, 7))
-	Hierarchical expression tree:
+	Flat syntax tree: +(2, *(5, 7))
+	Hierarchical syntax tree:
 
 	BinaryPlus
 		Literal (2)
@@ -25,8 +25,8 @@ Here's an example of running the application:
 	Value: 49
 	Prefix notation: * + 2 5 7
 	Postfix notation: 2 5 + 7 *
-	Flat expression tree: *(+(2, 5), 7)
-	Hierarchical expression tree:
+	Flat syntax tree: *(+(2, 5), 7)
+	Hierarchical syntax tree:
 
 	BinaryMul
 		BinaryPlus
