@@ -12,7 +12,7 @@ namespace ShuntingYardParser.InfixToAbstractSyntaxTree {
 
         protected override void PushOperand(Token t) {
             if (t.Type == TokenType.Literal) {
-                Operands.Push(new Literal { Value = Int32.Parse(t.Value) });
+                Operands.Push(new Literal { Value = Int32.Parse(t.Lexeme) });
             }
         }
 
@@ -47,7 +47,7 @@ namespace ShuntingYardParser.InfixToAbstractSyntaxTree {
                         break;
                     default:
                         throw new ArgumentException(
-                            string.Format("Unsupported operator: {0}", op.Value));
+                            string.Format("Unsupported operator: {0}", op.Lexeme));
                 }
 
                 Operands.Push(result);

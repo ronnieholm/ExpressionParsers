@@ -36,8 +36,8 @@ namespace ShuntingYardParser {
                 FlatExpressionPrinter printer = new FlatExpressionPrinter();
                 if (e[1] != value.ToString() &&
                     e[1] != expression.Evaluate().ToString() &&
-                    e[2] != prefix.Value &&
-                    e[3] != postfix.Value &&
+                    e[2] != prefix.Lexeme &&
+                    e[3] != postfix.Lexeme &&
                     e[4] != printer.Print(expression)) {
                     Console.WriteLine("Error parsing: " + e[0]);
                 }
@@ -61,8 +61,8 @@ namespace ShuntingYardParser {
                 HierarchicalExpressionPrinter HierarchicalPrinter = new HierarchicalExpressionPrinter();
 
                 Console.WriteLine("Value: " + value);
-                Console.WriteLine("Prefix notation: " + prefix.Value);
-                Console.WriteLine("Postfix notation: " + postfix.Value);
+                Console.WriteLine("Prefix notation: " + prefix.Lexeme);
+                Console.WriteLine("Postfix notation: " + postfix.Lexeme);
                 Console.WriteLine("Flat expression tree: " + flatPrinter.Print(expression));
                 Console.WriteLine("Hierarchical expression tree: " + Environment.NewLine);
                 Console.WriteLine(HierarchicalPrinter.Print(expression));

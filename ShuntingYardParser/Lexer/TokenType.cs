@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace ShuntingYardParser.Lexer {
     public enum TokenType {
+        None = 0,
         Literal,
         LeftParen,
         RightParen,

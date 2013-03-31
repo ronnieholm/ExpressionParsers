@@ -23,8 +23,8 @@ namespace ShuntingYardParser.InfixToPrefix {
 
                 Operands.Push(new Token {
                     Type = TokenType.Literal,
-                    Value = string.Format(
-                        "{0} {1}", op.Value, operand.Value)
+                    Lexeme = string.Format(
+                        "{0} {1}", op.Lexeme, operand.Lexeme)
                 });
             }
             else {
@@ -33,8 +33,8 @@ namespace ShuntingYardParser.InfixToPrefix {
 
                 Operands.Push(new Token {
                     Type = TokenType.Literal,
-                    Value = string.Format(
-                        "{0} {1} {2}", op.Value, left.Value, right.Value)
+                    Lexeme = string.Format(
+                        "{0} {1} {2}", op.Lexeme, left.Lexeme, right.Lexeme)
                 });
             }
         }
