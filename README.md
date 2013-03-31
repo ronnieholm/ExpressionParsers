@@ -2,11 +2,11 @@ ParserSamples
 =============
 
 Implements a parser that accepts a mathematical expression in infix notation and
-outputs the corresponding prefix and postfix notation in addition to the abstract
-syntax tree for the expression. The parser adheres to the common rules of associativity
-and precedence.
+outputs the corresponding prefix and postfix notation and the abstract syntax tree
+for the expression. The parser adheres to the common rules of associativity and 
+precedence.
 
-Here's an example of running the console application:
+Here's an example of running the application:
 
 	> 2 + 5 * 7
 	Value: 37
