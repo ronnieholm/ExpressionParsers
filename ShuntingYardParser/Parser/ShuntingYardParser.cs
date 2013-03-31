@@ -5,6 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using ShuntingYardParser.Lexer;
 
+// Improvements:
+//   - Support floating point numbers and function names and arguments
+
 namespace ShuntingYardParser.Parser {
     public abstract class ShuntingYardParser<TOperand> {
         Dictionary<TokenType, int> _precedence = new Dictionary<TokenType, int> { 

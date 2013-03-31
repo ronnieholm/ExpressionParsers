@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 //     and IEnumerable doesn't support this. We could store the previously matched
 //     tokens in a field, but it's hardly worth the added complexity.
 
-// Improvements
+// Improvements:
 //   - Support floating point numbers and function names and arguments
 //   - Use regular expressions instead of implementing our own state machine
 

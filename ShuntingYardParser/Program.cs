@@ -47,7 +47,8 @@ namespace ShuntingYardParser {
         private static void ExecuteREPL() {
             string infix = "";
 
-            Console.WriteLine("Enter a syntactically valid mathematical expression (only does integer math)");
+            Console.WriteLine("Enter a syntactically valid mathematical expression, such as (2 + 3) * 4.");
+            Console.WriteLine("Only integer math, parenthesis, and operators +, -, *, /, ^ supported.");
             while (true) {
                 Console.Write("> ");
                 infix = Console.ReadLine();
