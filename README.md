@@ -1,4 +1,4 @@
-Shunting Yard parser
+Shunting Yard Parser
 ====================
 
 Implements a parser that accepts a mathematical expression in infix notation and
