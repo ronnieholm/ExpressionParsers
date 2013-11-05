@@ -1,5 +1,5 @@
-ParserSamples
-=============
+Shunting Yard parser
+====================
 
 Implements a parser that accepts a mathematical expression in infix notation and
 outputs the corresponding prefix and postfix notation and the abstract syntax tree
