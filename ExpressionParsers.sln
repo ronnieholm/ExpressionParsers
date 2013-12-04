@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShuntingYardParser", "ShuntingYardParser\ShuntingYardParser.csproj", "{3F0CA227-4E60-40C5-A77A-40510B8D2A90}"
+# Visual Studio Express 2012 for Web
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShuntingYardParser.CSharp", "ShuntingYardParser.CSharp\ShuntingYardParser.CSharp.csproj", "{3F0CA227-4E60-40C5-A77A-40510B8D2A90}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
