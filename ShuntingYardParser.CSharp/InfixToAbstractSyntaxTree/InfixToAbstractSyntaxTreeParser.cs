@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ShuntingYardParser.Parser;
-using ShuntingYardParser.Lexer;
+using ShuntingYardParser.CSharp.Parser;
+using ShuntingYardParser.CSharp.Lexer;
 
-namespace ShuntingYardParser.InfixToAbstractSyntaxTree {
+namespace ShuntingYardParser.CSharp.InfixToAbstractSyntaxTree {
     public class InfixToAbstractSyntaxTreeParser : ShuntingYardParser<Expression> {
         public InfixToAbstractSyntaxTreeParser(ExpressionLexer lexer) : base(lexer) { }
 

@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using ShuntingYardParser.Lexer;
-using ShuntingYardParser.Parser;
+using ShuntingYardParser.CSharp.Lexer;
+using ShuntingYardParser.CSharp.Parser;
 
-namespace ShuntingYardParser.InfixEvaluator {
+namespace ShuntingYardParser.CSharp.InfixEvaluator {
     public class InfixEvaluatorParser : ShuntingYardParser<int> {
         public InfixEvaluatorParser(ExpressionLexer lexer) : base(lexer) { }
 

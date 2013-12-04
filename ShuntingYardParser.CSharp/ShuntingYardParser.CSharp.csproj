@@ -7,8 +7,8 @@
     <ProjectGuid>{3F0CA227-4E60-40C5-A77A-40510B8D2A90}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ShuntingYardParser</RootNamespace>
-    <AssemblyName>ShuntingYardParser</AssemblyName>
+    <RootNamespace>ShuntingYardParser.CSharp</RootNamespace>
+    <AssemblyName>ShuntingYardParser.CSharp</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

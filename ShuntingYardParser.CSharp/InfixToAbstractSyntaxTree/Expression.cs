@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 //   - Change return type of Evaluate() to floating point to support more
 //     accurate computations, e.g., 2^-1 yields 0 with integer math.
 
-namespace ShuntingYardParser.InfixToAbstractSyntaxTree {
+namespace ShuntingYardParser.CSharp.InfixToAbstractSyntaxTree {
     public abstract class Expression {
         public abstract int Evaluate();
     }

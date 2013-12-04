@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using ShuntingYardParser.Parser;
-using ShuntingYardParser.Lexer;
+using ShuntingYardParser.CSharp.Parser;
+using ShuntingYardParser.CSharp.Lexer;
 
-namespace ShuntingYardParser.InfixToPostfix {
+namespace ShuntingYardParser.CSharp.InfixToPostfix {
     public class InfixToPostfixParser : ShuntingYardParser<Token> {
         public InfixToPostfixParser(ExpressionLexer lexer) : base(lexer) { }
 

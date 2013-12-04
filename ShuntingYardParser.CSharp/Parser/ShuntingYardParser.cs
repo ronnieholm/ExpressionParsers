@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ShuntingYardParser.Lexer;
+using ShuntingYardParser.CSharp.Lexer;
 
 // Improvements:
 //   - Support floating point numbers and function names and arguments
 
-namespace ShuntingYardParser.Parser {
+namespace ShuntingYardParser.CSharp.Parser {
     public abstract class ShuntingYardParser<TOperand> {
         Dictionary<TokenType, int> _precedence = new Dictionary<TokenType, int> { 
             { TokenType.BinaryExp, 4 },

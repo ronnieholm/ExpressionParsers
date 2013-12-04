@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ShuntingYardParser.InfixToAbstractSyntaxTree {
+namespace ShuntingYardParser.CSharp.InfixToAbstractSyntaxTree {
     public class BinaryMinus : Expression {
         public Expression LeftOperand { get; set; }
         public Expression RightOperand { get; set; }

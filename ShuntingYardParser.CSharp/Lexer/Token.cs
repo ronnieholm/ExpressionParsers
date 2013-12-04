@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ShuntingYardParser.Lexer {
+namespace ShuntingYardParser.CSharp.Lexer {
     public class Token {
         public TokenType Type { get; set; }
         public string Lexeme { get; set; }

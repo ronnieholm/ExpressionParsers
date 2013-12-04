@@ -1,13 +1,13 @@
-﻿using ShuntingYardParser.Lexer;
+﻿using ShuntingYardParser.CSharp.Lexer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ShuntingYardParser.InfixEvaluator;
-using ShuntingYardParser.InfixToPrefix;
-using ShuntingYardParser.InfixToPostfix;
-using ShuntingYardParser.InfixToAbstractSyntaxTree;
+using ShuntingYardParser.CSharp.InfixEvaluator;
+using ShuntingYardParser.CSharp.InfixToPrefix;
+using ShuntingYardParser.CSharp.InfixToPostfix;
+using ShuntingYardParser.CSharp.InfixToAbstractSyntaxTree;
 
 namespace ShuntingYardParser {
     public class Program {

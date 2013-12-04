@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using ShuntingYardParser.Lexer;
-using ShuntingYardParser.Parser;
+using ShuntingYardParser.CSharp.Lexer;
+using ShuntingYardParser.CSharp.Parser;
 
-namespace ShuntingYardParser.InfixToPrefix {
+namespace ShuntingYardParser.CSharp.InfixToPrefix {
     public class InfixToPrefixParser : ShuntingYardParser<Token> {
         public InfixToPrefixParser(ExpressionLexer lexer) : base(lexer) { }
 

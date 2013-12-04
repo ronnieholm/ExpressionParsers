@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 //   - Support floating point numbers and function names and arguments
 //   - Use regular expressions instead of implementing our own state machine
 
-namespace ShuntingYardParser.Lexer {
+namespace ShuntingYardParser.CSharp.Lexer {
     public class ExpressionLexer {
         public List<Token> Tokenize(string expression) {
             List<Token> _tokens = new List<Token>();
