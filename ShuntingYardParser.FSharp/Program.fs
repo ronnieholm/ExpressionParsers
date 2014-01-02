@@ -1,5 +1,29 @@
 ﻿module ShuntingYardParser.FSharp
 
+
+(*
+http://stevegilham.blogspot.dk/2013/12/an-introduction-to-functional_11.html
+let digitToint i =
+   match i with
+     '0' -> 0
+   | '1' -> 1
+   | '2' -> 2
+   | '3' -> 3
+   | '4' -> 4
+   | '5' -> 5
+   | '6' -> 6
+   | '7' -> 7
+   | '8' -> 8
+   | '9' -> 9
+   | (_) -> 0 ;;
+
+let mkint s =
+ let rec mkintAux s a =
+     match s with
+      [] -> a
+    | (x::xs) ->  mkintAux xs ((a*10) + (digitToint x))
+ mkintAux s 0;;
+*)
 open System
 
 module Test =   
@@ -17,7 +41,7 @@ module Test =
         Literal := "0" | "1" | ... | "9"
     *)
 
-    type TokenType =
+    type TokenType = // lexemes
         | Literal of int
         | LParen
         | RParen
