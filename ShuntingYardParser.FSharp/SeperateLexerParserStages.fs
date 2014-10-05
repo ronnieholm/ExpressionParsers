@@ -26,9 +26,6 @@ open Swensen.Unquote
 // all the top-level expressionParser requires is a stream of tokens. This 
 // isn't typical of a parser. Instead a parser would normally construct an 
 // abstract syntax tree from the tokens and pass the tree to the evaluator. 
-// For this simple case of expression parsing, the lexer, parser, and evaluator 
-// have (mostly) been combined into a single stage. Yet, internally they
-// communicate by passing tokens around (not an ideal architecture).
 
 // a parser for a real programming language would construct a syntax tree 
 // of all the source code and either call upon a different parser for the 
