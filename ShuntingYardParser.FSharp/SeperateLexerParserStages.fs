@@ -8,9 +8,12 @@ module SeperateLexerParserStages
 open System
 open Swensen.Unquote
 
-// improvement: 
+// improvement:
 //   store row, column, length of each token with each instance
 //   parse and discard of whitespace
+//   instead of first tokenizing the entire expression, have parser
+//     call a next token function. The next token function could
+//     start by removing any whitespace
 
 // Backus-Naus expression grammar (whitespace-handling excluded)
 // Not used directly for this lexer/parser because the parser
@@ -161,8 +164,8 @@ test <@ parseUnaryOp ("-" |> toArray) = Some(UnaryMinOp, []) @>
 test <@ parseUnaryOp ("+" |> toArray) = Some(UnaryPlusOp, []) @>
 test <@ parseUnaryOp ("+1" |> toArray) = Some(UnaryPlusOp, ['1']) @>
 
-// top-level parser
-let parseExpression input =
+// top-level lexer
+let tokenizeExpression input =
     // some types of tokens require the input to consumed more
     // greedy than others. We try the most greedy ones first to
     // make sure no ambiguity arise.
@@ -191,18 +194,18 @@ let parseExpression input =
         
     parse' [] input |> List.rev
 
-test <@ parseExpression ("" |> toArray) = [] @>
-test <@ parseExpression ("1" |> toArray) = [Integer 1] @>
-test <@ parseExpression ("1+2" |> toArray) = [Integer 1; BinPlusOp; Integer 2] @>
-test <@ parseExpression ("1-2" |> toArray) = [Integer 1; BinMinOp; Integer 2] @>
+test <@ tokenizeExpression  ("" |> toArray) = [] @>
+test <@ tokenizeExpression  ("1" |> toArray) = [Integer 1] @>
+test <@ tokenizeExpression  ("1+2" |> toArray) = [Integer 1; BinPlusOp; Integer 2] @>
+test <@ tokenizeExpression  ("1-2" |> toArray) = [Integer 1; BinMinOp; Integer 2] @>
 
 // is this legal math syntax? PowerShell cannot parse this but requires "1-(-2)"
 // whereas LibreOffice parses and evaluates it to 3
-test <@ parseExpression ("1--2" |> toArray) = [Integer 1; BinMinOp; UnaryMinOp; Integer 2] @>
-test <@ parseExpression ("-1" |> toArray) = [UnaryMinOp; Integer 1] @>
-test <@ parseExpression ("+1" |> toArray) = [UnaryPlusOp; Integer 1] @>
-test <@ parseExpression ("1+-2" |> toArray) = [Integer 1; BinPlusOp; UnaryMinOp; Integer 2] @>
-test <@ parseExpression ("-(1+2*3/4^5)" |> toArray) = [UnaryMinOp; LParen; Integer 1; BinPlusOp; Integer 2; BinMulOp; Integer 3; BinDivOp; Integer 4; BinExpOp; Integer 5; RParen] @>
+test <@ tokenizeExpression  ("1--2" |> toArray) = [Integer 1; BinMinOp; UnaryMinOp; Integer 2] @>
+test <@ tokenizeExpression  ("-1" |> toArray) = [UnaryMinOp; Integer 1] @>
+test <@ tokenizeExpression  ("+1" |> toArray) = [UnaryPlusOp; Integer 1] @>
+test <@ tokenizeExpression  ("1+-2" |> toArray) = [Integer 1; BinPlusOp; UnaryMinOp; Integer 2] @>
+test <@ tokenizeExpression  ("-(1+2*3/4^5)" |> toArray) = [UnaryMinOp; LParen; Integer 1; BinPlusOp; Integer 2; BinMulOp; Integer 3; BinDivOp; Integer 4; BinExpOp; Integer 5; RParen] @>
 
 (*
     Shunting Yard algorithm
@@ -297,9 +300,16 @@ let reduceExpression() =
         | BinExpOp -> pushOperand(Integer (Math.Pow(float left, float right) |> int))
         | _ -> failwithf "Unsupported operator %A" op
 
-// depending on your definition of a parse, this one is either a Shunting 
-// Yard parser or an evaluator.
-let parse tokens =
+// depending on your definition of a parser, this one is either a Shunting 
+// Yard expression parser or an evaluator. If you only wish to do one 
+// thing with the input, such as evaluate the expression to an integer,
+// the below code suffices. However, the Shunting Yard algorithm can
+// also be used to construct syntax trees from tokens. The algorithm
+// remains the same, but you must modify the reduceExpression function
+// to not store integers on the operand stack but syntax tree nodes. The
+// node that remains after all tokens have been evaluated in the syntax
+// tree representing the expression.
+let parseExpression tokens =
     // while tokens to be read
     let rec parse' (tokens: Token list) =
         match tokens with
@@ -362,21 +372,21 @@ let parse tokens =
 
     parse' tokens
 
-test <@ "1" |> toArray |> parseExpression |> parse = Integer 1 @>
-test <@ "-1" |> toArray |> parseExpression |> parse = Integer -1 @>
-test <@ "1+2" |> toArray |> parseExpression |> parse = Integer 3 @>
-test <@ "(1+2)" |> toArray |> parseExpression |> parse = Integer 3 @>
-test <@ "1+-2" |> toArray |> parseExpression |> parse = Integer -1 @>
-test <@ "-(1+2)" |> toArray |> parseExpression |> parse = Integer -3 @>
-test <@ "2*3" |> toArray |> parseExpression |> parse = Integer 6 @>
-test <@ "10/2" |> toArray |> parseExpression |> parse = Integer 5 @>
-test <@ "2^3^2" |> toArray |> parseExpression |> parse = Integer 512 @>
-test <@ "1+2*3" |> toArray |> parseExpression |> parse = Integer 7 @>
-test <@ "4^5/1+2*3" |> toArray |> parseExpression |> parse = Integer 1030 @>
+test <@ "1" |> toArray |> tokenizeExpression |> parseExpression = Integer 1 @>
+test <@ "-1" |> toArray |> tokenizeExpression |> parseExpression = Integer -1 @>
+test <@ "1+2" |> toArray |> tokenizeExpression |> parseExpression = Integer 3 @>
+test <@ "(1+2)" |> toArray |> tokenizeExpression |> parseExpression = Integer 3 @>
+test <@ "1+-2" |> toArray |> tokenizeExpression |> parseExpression = Integer -1 @>
+test <@ "-(1+2)" |> toArray |> tokenizeExpression |> parseExpression = Integer -3 @>
+test <@ "2*3" |> toArray |> tokenizeExpression |> parseExpression = Integer 6 @>
+test <@ "10/2" |> toArray |> tokenizeExpression |> parseExpression = Integer 5 @>
+test <@ "2^3^2" |> toArray |> tokenizeExpression |> parseExpression = Integer 512 @>
+test <@ "1+2*3" |> toArray |> tokenizeExpression |> parseExpression = Integer 7 @>
+test <@ "4^5/1+2*3" |> toArray |> tokenizeExpression |> parseExpression = Integer 1030 @>
 
 module Program =
     [<EntryPoint>]
     let main _ =
-        let lexemes = "1--2" |> toArray |> parseExpression
-        let result = lexemes |> parse
+        let lexemes = "1--2" |> toArray |> tokenizeExpression
+        let result = lexemes |> parseExpression
         0
