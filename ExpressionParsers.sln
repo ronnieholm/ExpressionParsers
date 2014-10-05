@@ -1,6 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2012 for Web
+# Visual Studio Express 2013 for Web
+VisualStudioVersion = 12.0.30501.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{E4CEFAFA-3AED-4B6F-AF94-5A39610FFC11}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShuntingYardParser.CSharp", "ShuntingYardParser.CSharp\ShuntingYardParser.CSharp.csproj", "{3F0CA227-4E60-40C5-A77A-40510B8D2A90}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ShuntingYardParser.FSharp", "ShuntingYardParser.FSharp\ShuntingYardParser.FSharp.fsproj", "{511A0BFF-1A11-45BF-ADFB-DEA7CA5D2722}"
