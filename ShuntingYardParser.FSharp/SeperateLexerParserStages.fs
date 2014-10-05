@@ -300,6 +300,8 @@ let reduceExpression() =
         | BinExpOp -> pushOperand(Integer (Math.Pow(float left, float right) |> int))
         | _ -> failwithf "Unsupported operator %A" op
 
+// depending on your definition of a parse, this one is either a Shunting 
+// Yard parser or an evaluator.
 let parse tokens =
     // while tokens to be read
     let rec parse' (tokens: Token list) =
