@@ -2,18 +2,11 @@
 #r "../packages/Unquote.2.2.2/lib/net40/Unquote.dll"
 #r "System.dll"
 #else
-module SeperateLexerParserStages
+module SeparateLexerParserStages
 #endif
 
 open System
 open Swensen.Unquote
-
-// improvement:
-//   store row, column, length of each token with each instance
-//   parse and discard of whitespace
-//   instead of first tokenizing the entire expression, have parser
-//     call a next token function. The next token function could
-//     start by removing any whitespace
 
 // Backus-Naus expression grammar (whitespace-handling excluded)
 // Not used directly for this lexer/parser because the parser
@@ -22,7 +15,7 @@ open Swensen.Unquote
 // Expression := Term (BinOp Term)*
 // Term := Integer | UnaryOp Term | '(' Expression ')'
 // BinOps := '+' | '-' | '*' | '/' | '^'
-// UnaryOps := '-'
+// UnaryOps := '-' | '+'
 // Digit := '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
 // Integer := Digit+
 
@@ -37,19 +30,8 @@ open Swensen.Unquote
 // upon different evaluators for expressions and statements. That way the 
 // parser could still assert the source code was valid. It's a trade-off 
 // between complicating the parser by having it do a bit of evaluation
-// to simplify evaluation or complicate the evaluator.
+// to simplify future evaluation or complicate the evaluator.
 
-// tokens act as a grouping mechanism of information within the
-// domain we're parsing (mathematical expressions). Therefore,
-// we don't require seperate types of tokens for each digit, but 
-// treat them the same and represent them as a common Integer token 
-// type. Not so with the operators which we want to treat differently 
-// during parsing and evaluation. Note also how the UnaryMinOp and 
-// BinMinOp are both represented by the "-" character in an expression, 
-// but depending on its position (its contexts) it has different meaning.
-// Here, the unary operators are mostly for illustration purposes.
-// We could get rid of the unary operators and extend the integer parser
-// to parse the sign as well.
 type Token =
     | Integer of Int32
     | BinPlusOp
@@ -62,16 +44,14 @@ type Token =
     | LParen
     | RParen
 
-// lexing is effectively parsing at the character level so we 
-// break down the input into its atomic units (characters)
+// val toArray : s:string -> char list
 let toArray (s: string) = s.ToCharArray() |> List.ofArray
 
-// all parsers attempt to consume characters from left to right
-// until the parser can either return Some (the parsed characters
-// and the remaining input) or the expected token couldn't be 
-// constructed from the input.
+test <@ toArray "" = [] @>
+test <@ toArray "1" = ['1'] @>
+test <@ toArray "1+2" = ['1'; '+'; '2'] @>
 
-// parses a single digit
+// val parseDigit : _arg1:char list -> (int * char list) option
 let parseDigit = function
     | hd :: tl ->
         match hd with
@@ -81,15 +61,13 @@ let parseDigit = function
         | _ -> None
     | _ -> None
 
-test <@ parseDigit ("123" |> toArray) = Some(1, ['2'; '3']) @>
-test <@ parseDigit ("12" |> toArray) = Some(1, ['2']) @>
-test <@ parseDigit ("2" |> toArray) = Some(2, []) @>
-test <@ parseDigit ("." |> toArray) = None @>
 test <@ parseDigit ("" |> toArray) = None @>
+test <@ parseDigit ("." |> toArray) = None @>
+test <@ parseDigit ("2" |> toArray) = Some(2, []) @>
+test <@ parseDigit ("12" |> toArray) = Some(1, ['2']) @>
+test <@ parseDigit ("123" |> toArray) = Some(1, ['2'; '3']) @>
 
-// parses a series of digits into an integer
-// could be replaced by a generic parser that keeps applying the
-// parseDigit parser to the input until parseDigit would return None.
+// val parseInteger : input:char list -> (Token * char list) option
 let parseInteger input =
     let rec parse' input digits =
         match parseDigit input with
@@ -105,10 +83,9 @@ test <@ parseInteger ("" |> toArray) = None @>
 test <@ parseInteger ("1" |> toArray) = Some(Integer 1, []) @>
 test <@ parseInteger ("01" |> toArray) = Some(Integer 1, []) @>
 test <@ parseInteger ("12" |> toArray) = Some(Integer 12, []) @>
-test <@ parseInteger ("123" |> toArray) = Some(Integer 123, []) @>
-test <@ parseInteger ("123.4" |> toArray) = Some(Integer 123, ['.'; '4']) @>
+test <@ parseInteger ("12.3" |> toArray) = Some(Integer 12, ['.'; '3']) @>
 
-// parses binary operators
+// val parseBinOp : _arg1:char list -> (Token * char list) option
 let parseBinOp = function
     | hd :: tl ->
         match hd with
@@ -129,7 +106,7 @@ test <@ parseBinOp ("/" |> toArray) = Some(BinDivOp, []) @>
 test <@ parseBinOp ("^" |> toArray) = Some(BinExpOp, []) @>
 test <@ parseBinOp ("^12" |> toArray) = Some(BinExpOp, ['1'; '2']) @>
 
-// parses parenthesis
+// val parseParen : _arg1:char list -> (Token * char list) option
 let parseParen = function
     | hd :: tl ->
         match hd with
@@ -144,12 +121,7 @@ test <@ parseParen ("(" |> toArray) = Some(LParen, []) @>
 test <@ parseParen (")" |> toArray) = Some(RParen, []) @>
 test <@ parseParen (")+1" |> toArray) = Some(RParen, ['+'; '1']) @>
 
-// we can only discriminate between UnaryOp and BinOp with a priory
-// knowledge of number of tokens matched thus far and last token 
-// matched. We don't provide the function with this info, but instead
-// make sure we call parseUnaryOp at the right place from inside the
-// parseExpression parser so it can infer the information. It would
-// be simpler to treat the sign as part of the integer parser directly.
+// val parseUnaryOp : input:char list -> (Token * char list) option
 let parseUnaryOp input =  
     match input with
     | hd :: tl ->
@@ -164,22 +136,27 @@ test <@ parseUnaryOp ("-" |> toArray) = Some(UnaryMinOp, []) @>
 test <@ parseUnaryOp ("+" |> toArray) = Some(UnaryPlusOp, []) @>
 test <@ parseUnaryOp ("+1" |> toArray) = Some(UnaryPlusOp, ['1']) @>
 
-// top-level lexer
-let tokenizeExpression input =
-    // some types of tokens require the input to consumed more
-    // greedy than others. We try the most greedy ones first to
-    // make sure no ambiguity arise.
+// val parseExpression : input:string -> Token list
+let parseExpression input =
+    // some types of tokens requires input to be consumed more
+    // greedy than others. Try the most greedy one first to
+    // resolve any ambiguity that might arise.
+
+    // val parse' : Token list -> char list -> Token list
     let rec parse' tokens rest =
         match parseInteger rest with 
         | Some (integer, tl) -> parse' (integer :: tokens) tl
         | _ ->
             match parseUnaryOp rest with
             | Some (unaryOp, tl) -> 
-                let ops = [BinPlusOp; BinMinOp; BinMinOp; BinDivOp; BinExpOp; LParen]
-                if (List.length tokens = 0) || (ops |> List.exists (fun o -> o = (List.head tokens))) then
+                let isPrevTokenBinaryOp token = 
+                    [BinPlusOp; BinMinOp; BinMinOp; BinDivOp; BinExpOp; LParen] 
+                    |> List.exists (fun o -> o = token)
+                if List.length tokens = 0 ||
+                   isPrevTokenBinaryOp (List.head tokens) then
                     parse' (unaryOp :: tokens) tl
                 else 
-                    // we're mistaken -- backtrack. It must be either BinPlus or BinMinOp instead
+                    // No? Must be BinPlusOp or BinMinOp instead then
                     match unaryOp with
                     | UnaryMinOp -> parse' (BinMinOp :: tokens) tl 
                     | UnaryPlusOp -> parse' (BinPlusOp :: tokens) tl
@@ -192,20 +169,24 @@ let tokenizeExpression input =
                     | Some (paren, tl) -> parse' (paren :: tokens) tl
                     | _ -> tokens
         
-    parse' [] input |> List.rev
+    parse' [] (input |> toArray) |> List.rev
 
-test <@ tokenizeExpression  ("" |> toArray) = [] @>
-test <@ tokenizeExpression  ("1" |> toArray) = [Integer 1] @>
-test <@ tokenizeExpression  ("1+2" |> toArray) = [Integer 1; BinPlusOp; Integer 2] @>
-test <@ tokenizeExpression  ("1-2" |> toArray) = [Integer 1; BinMinOp; Integer 2] @>
+test <@ parseExpression "" = [] @>
+test <@ parseExpression "1" = [Integer 1] @>
+test <@ parseExpression "1+2" = [Integer 1; BinPlusOp; Integer 2] @>
+test <@ parseExpression "1-2" = [Integer 1; BinMinOp; Integer 2] @>
 
-// is this legal math syntax? PowerShell cannot parse this but requires "1-(-2)"
-// whereas LibreOffice parses and evaluates it to 3
-test <@ tokenizeExpression  ("1--2" |> toArray) = [Integer 1; BinMinOp; UnaryMinOp; Integer 2] @>
-test <@ tokenizeExpression  ("-1" |> toArray) = [UnaryMinOp; Integer 1] @>
-test <@ tokenizeExpression  ("+1" |> toArray) = [UnaryPlusOp; Integer 1] @>
-test <@ tokenizeExpression  ("1+-2" |> toArray) = [Integer 1; BinPlusOp; UnaryMinOp; Integer 2] @>
-test <@ tokenizeExpression  ("-(1+2*3/4^5)" |> toArray) = [UnaryMinOp; LParen; Integer 1; BinPlusOp; Integer 2; BinMulOp; Integer 3; BinDivOp; Integer 4; BinExpOp; Integer 5; RParen] @>
+// is this legal math syntax? PowerShell can only parse "1-(-2)"
+// whereas LibreOffice parses and evaluates supports "1--2"
+test <@ parseExpression "1--2" = 
+            [Integer 1; BinMinOp; UnaryMinOp; Integer 2] @>
+test <@ parseExpression "-1" = [UnaryMinOp; Integer 1] @>
+test <@ parseExpression "+1" = [UnaryPlusOp; Integer 1] @>
+test <@ parseExpression "1+-2" = 
+            [Integer 1; BinPlusOp; UnaryMinOp; Integer 2] @>
+test <@ parseExpression "-(1+2*3/4^5)" =
+            [UnaryMinOp; LParen; Integer 1; BinPlusOp; Integer 2; BinMulOp; 
+             Integer 3; BinDivOp; Integer 4; BinExpOp; Integer 5; RParen] @>
 
 (*
     Shunting Yard algorithm
@@ -309,7 +290,7 @@ let reduceExpression() =
 // to not store integers on the operand stack but syntax tree nodes. The
 // node that remains after all tokens have been evaluated in the syntax
 // tree representing the expression.
-let parseExpression tokens =
+let parseExpression' tokens =
     // while tokens to be read
     let rec parse' (tokens: Token list) =
         match tokens with
@@ -372,21 +353,21 @@ let parseExpression tokens =
 
     parse' tokens
 
-test <@ "1" |> toArray |> tokenizeExpression |> parseExpression = Integer 1 @>
-test <@ "-1" |> toArray |> tokenizeExpression |> parseExpression = Integer -1 @>
-test <@ "1+2" |> toArray |> tokenizeExpression |> parseExpression = Integer 3 @>
-test <@ "(1+2)" |> toArray |> tokenizeExpression |> parseExpression = Integer 3 @>
-test <@ "1+-2" |> toArray |> tokenizeExpression |> parseExpression = Integer -1 @>
-test <@ "-(1+2)" |> toArray |> tokenizeExpression |> parseExpression = Integer -3 @>
-test <@ "2*3" |> toArray |> tokenizeExpression |> parseExpression = Integer 6 @>
-test <@ "10/2" |> toArray |> tokenizeExpression |> parseExpression = Integer 5 @>
-test <@ "2^3^2" |> toArray |> tokenizeExpression |> parseExpression = Integer 512 @>
-test <@ "1+2*3" |> toArray |> tokenizeExpression |> parseExpression = Integer 7 @>
-test <@ "4^5/1+2*3" |> toArray |> tokenizeExpression |> parseExpression = Integer 1030 @>
+test <@ "1" |> parseExpression |> parseExpression' = Integer 1 @>
+test <@ "-1" |> parseExpression |> parseExpression' = Integer -1 @>
+test <@ "1+2" |> parseExpression |> parseExpression' = Integer 3 @>
+test <@ "(1+2)" |> parseExpression |> parseExpression' = Integer 3 @>
+test <@ "1+-2" |> parseExpression |> parseExpression' = Integer -1 @>
+test <@ "-(1+2)" |> parseExpression |> parseExpression' = Integer -3 @>
+test <@ "2*3" |> parseExpression |> parseExpression' = Integer 6 @>
+test <@ "10/2" |> parseExpression |> parseExpression' = Integer 5 @>
+test <@ "2^3^2" |> parseExpression |> parseExpression' = Integer 512 @>
+test <@ "1+2*3" |> parseExpression |> parseExpression' = Integer 7 @>
+test <@ "4^5/1+2*3" |> parseExpression |> parseExpression' = Integer 1030 @>
 
 module Program =
     [<EntryPoint>]
     let main _ =
-        let lexemes = "1--2" |> toArray |> tokenizeExpression
-        let result = lexemes |> parseExpression
+        let lexemes = "1--2" |> parseExpression
+        let result = lexemes |> parseExpression'
         0
