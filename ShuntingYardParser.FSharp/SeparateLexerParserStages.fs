@@ -152,7 +152,7 @@ let parseExpression input =
                 let isPrevTokenBinaryOp token = 
                     [BinPlusOp; BinMinOp; BinMinOp; BinDivOp; BinExpOp; LParen] 
                     |> List.exists (fun o -> o = token)
-                if List.length tokens = 0 ||
+                if tokens = List.empty || 
                    isPrevTokenBinaryOp (List.head tokens) then
                     parse' (unaryOp :: tokens) tl
                 else 
