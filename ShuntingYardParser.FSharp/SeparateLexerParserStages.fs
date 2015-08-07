@@ -1,5 +1,5 @@
 ﻿#if INTERACTIVE
-#r "../packages/Unquote.2.2.2/lib/net40/Unquote.dll"
+#r "../packages/Unquote.3.0.0/lib/net45/Unquote.dll"
 #r "System.dll"
 #else
 module SeparateLexerParserStages
