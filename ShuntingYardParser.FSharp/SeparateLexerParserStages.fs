@@ -156,7 +156,7 @@ let parseExpression input =
                    isPrevTokenBinaryOp (List.head tokens) then
                     parse' (unaryOp :: tokens) tl
                 else 
-                    // No? Must be BinPlusOp or BinMinOp instead then
+                    // no? Must be BinPlusOp or BinMinOp instead then
                     match unaryOp with
                     | UnaryMinOp -> parse' (BinMinOp :: tokens) tl 
                     | UnaryPlusOp -> parse' (BinPlusOp :: tokens) tl
