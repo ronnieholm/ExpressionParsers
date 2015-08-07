@@ -177,7 +177,7 @@ test <@ parseExpression "1+2" = [Integer 1; BinPlusOp; Integer 2] @>
 test <@ parseExpression "1-2" = [Integer 1; BinMinOp; Integer 2] @>
 
 // is this legal math syntax? PowerShell can only parse "1-(-2)"
-// whereas LibreOffice parses and evaluates supports "1--2"
+// whereas LibreOffice parses and evaluates "1--2"
 test <@ parseExpression "1--2" = 
             [Integer 1; BinMinOp; UnaryMinOp; Integer 2] @>
 test <@ parseExpression "-1" = [UnaryMinOp; Integer 1] @>
