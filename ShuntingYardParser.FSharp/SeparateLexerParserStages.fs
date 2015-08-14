@@ -197,8 +197,8 @@ test <@ parseExpression "-(1+2*3/4^5)" =
         if token is unary prefix operator then push onto operator stack
         if token is binary operator, o1, then
           while operator token, o2, at top of operator stack, and
-              either o1 is left-associative and its precedence is <= to that of o2
-              or o1 is right-associative and its precedence < that of o2
+              either o1 is left associative and its precedence <= o2
+              or o1 is right associative and its precedence < o2
             reduce expression
           push o1 onto the operator stack
         if token is left paren then push it onto operator stack
@@ -209,11 +209,11 @@ test <@ parseExpression "-(1+2*3/4^5)" =
           pop left paren from stack
       when no more tokens to readand
         while still tokens on operator stack
-          if operator token on top of stack is paren then mismatched parentheses
+          if operator token on top of stack is paren then mismatched parens
           reduce expression
         pop result of operand stack
 
-      Reduce expession
+      reduce expression
         pop operator off operator stack
         pop operands off operand stack
         process expression
@@ -226,7 +226,7 @@ type Associativity =
     | Left
     | Right
 
-let operatorsInfo =
+let configuration =
     [(Token.BinExpOp, 4, Right)
      (Token.UnaryMinOp, 3, Left)
      (Token.BinMulOp, 2, Left)
@@ -234,95 +234,102 @@ let operatorsInfo =
      (Token.BinPlusOp, 1, Left)
      (Token.BinMinOp, 1, Left)]
 
+let operators = Stack<Token>()
+let operands = Stack<Token>()
+
+// val lookupOperator : token:Token -> int * Associativity
 let lookupOperator token = 
-    operatorsInfo 
-    |> List.find (fun (name, _, _) -> token = name) 
+    configuration 
+    |> List.find (fun (t, _, _) -> token = t) 
     |> fun (_, p, a) -> p, a
 
-let operands = new Stack<Token>()
-let operators = new Stack<Token>()
-
-let pushOperand token = operands.Push(token)
-let pushOperator token = operators.Push(token)
-
+// val isOperand : _arg1:Token -> bool
 let isOperand = function
     | Integer _ -> true
     | _ -> false
 
+// val isUnaryOperator : _arg1:Token -> bool
 let isUnaryOperator = function
     | UnaryMinOp | UnaryPlusOp -> true
     | _ -> false
 
+// val isBinaryOperator : _arg1:Token -> bool
 let isBinaryOperator = function
-    // not (isUnaryOperator token) will not work since Integer _ is neither
+    // not (isUnaryOperator token) will not work since Integer is neither
     | BinPlusOp | BinMinOp | BinMulOp | BinDivOp | BinExpOp -> true
     | _ -> false
 
-// infix evaluator
+// val reduceExpression : unit -> unit
 let reduceExpression() = 
     let extractValue t =
         match t with
         | Integer i -> i
         | _ -> failwithf "Unsupported %A" t
 
-    let op = operators.Pop()
-    if op = UnaryMinOp then
+    let operator = operators.Pop()
+    if operator = UnaryMinOp then
         let operand = operands.Pop() |> extractValue
-        pushOperand (Integer -operand)
-    else if op = UnaryPlusOp then operands.Pop() |> ignore
+        operands.Push(Integer -operand)
+    else if operator = UnaryPlusOp then operands.Pop() |> ignore
     else
-        let right = operands.Pop() |> extractValue
         let left = operands.Pop() |> extractValue
-        match op with
-        | BinPlusOp -> pushOperand(Integer (left + right))
-        | BinMinOp -> pushOperand(Integer (left - right))
-        | BinMulOp -> pushOperand(Integer (left * right))
-        | BinDivOp -> pushOperand(Integer (left / right))
-        | BinExpOp -> pushOperand(Integer (Math.Pow(float left, float right) |> int))
-        | _ -> failwithf "Unsupported operator %A" op
+        let right = operands.Pop() |> extractValue
+        match operator with
+        | BinPlusOp -> operands.Push(Integer (left + right))
+        | BinMinOp -> operands.Push(Integer (left - right))
+        | BinMulOp -> operands.Push(Integer (left * right))
+        | BinDivOp -> operands.Push(Integer (left / right))
+        | BinExpOp -> 
+            operands.Push(Integer (Math.Pow(float left, float right) |> int))
+        | _ -> failwithf "Unsupported operator %A" operator
 
 // depending on your definition of a parser, this one is either a Shunting 
 // Yard expression parser or an evaluator. If you only wish to do one 
 // thing with the input, such as evaluate the expression to an integer,
-// the below code suffices. However, the Shunting Yard algorithm can
+// the below code suffices. However, the Shunting Yard algorithm may
 // also be used to construct syntax trees from tokens. The algorithm
 // remains the same, but you must modify the reduceExpression function
 // to not store integers on the operand stack but syntax tree nodes. The
 // node that remains after all tokens have been evaluated in the syntax
 // tree representing the expression.
-let parseExpression' tokens =
+
+// val evaluateExpression : tokens:Token list -> Token
+let evaluateExpression tokens =
     // while tokens to be read
-    let rec parse' (tokens: Token list) =
-        match tokens with
+    // val eval : _arg1:Token list -> Token
+    let rec eval = function
         // read token
         | hd :: tl ->
             // if token is operand then push onto operand stack
-            if isOperand hd then pushOperand hd
+            if isOperand hd then operands.Push(hd)
 
             // if token is unary prefix operator then push onto operator stack
-            // todo: while not else if here?
-            else if isUnaryOperator hd then pushOperator hd
+            else if isUnaryOperator hd then operators.Push(hd)
 
             // if token is binary operator, o1, then
             else if isBinaryOperator hd then
                 // while operator token, o2, at top of operator stack, and
-                //     either o1 is left-associative and its precedence is <= to that of o2
-                //         or o1 is right-associative and its precedence is < that of o2
+                //     either o1 is left associative and its precedence <= o2
+                //     or o1 is right associative and its precedence < o2
                 //   reduce expression
                 // push o1 onto the operator stack
                 let pO1, aO1 = lookupOperator hd
-                let isReduceRequired operator =
-                    let o2 = if isBinaryOperator(operator) then Some(lookupOperator(operator)) else None
+                let isReduceRequired operator =                 
+                    let o2 = 
+                        if isBinaryOperator(operator) 
+                        then Some (lookupOperator(operator)) 
+                        else None
                     match o2 with
-                    | Some(pO2, aO2) -> (aO1 = Left && pO1 <= pO2) || (aO1 = Right && pO1 < pO2)                        
+                    | Some(pO2, aO2) -> 
+                        (aO1 = Left && pO1 <= pO2) || (aO1 = Right && pO1 < pO2)
                     | None -> false
 
                 while operators.Count > 0 && isReduceRequired(operators.Peek()) do 
                     reduceExpression()
-                pushOperator hd          
+                operators.Push(hd)
 
             // if token is left paren then push it onto operator stack
-            else if hd = LParen then pushOperator hd
+            else if hd = LParen then operators.Push(hd)
 
             // if token is right paren
             else if hd = RParen then
@@ -330,20 +337,22 @@ let parseExpression' tokens =
                 while operators.Count > 0 && operators.Peek() <> LParen do 
                     reduceExpression()
 
-                // if operator stack runs out without finding left paren then mismatched parens
-                if operators.Count = 0 then failwith "Unmatched parenthesis"
+                // if operator stack runs out without finding left paren 
+                // then mismatched parens
+                if operators.Count = 0 then failwith "Unmatched parens"
 
                 // pop left paren from stack
-                if operators.Peek() = LParen then (operators.Pop() |> ignore)
+                if operators.Peek() = LParen then operators.Pop() |> ignore
 
-            parse' tl
+            eval tl
         | [] ->
             // when no more tokens to readand
             // while still tokens on operator stack
             while operators.Count > 0 do
-                // if operator token on top of stack is paren then mismatched parentheses
+                // if operator token on top of stack is paren 
+                // then mismatched parens
                 if operators.Peek() = LParen || operators.Peek() = RParen then
-                    failwith "Unmatched parenthesis"
+                    failwith "Unmatched paren"
 
                 // reduce expression
                 reduceExpression()
@@ -351,23 +360,23 @@ let parseExpression' tokens =
             // pop result of operand stack
             operands.Pop()
 
-    parse' tokens
+    eval tokens
 
-test <@ "1" |> parseExpression |> parseExpression' = Integer 1 @>
-test <@ "-1" |> parseExpression |> parseExpression' = Integer -1 @>
-test <@ "1+2" |> parseExpression |> parseExpression' = Integer 3 @>
-test <@ "(1+2)" |> parseExpression |> parseExpression' = Integer 3 @>
-test <@ "1+-2" |> parseExpression |> parseExpression' = Integer -1 @>
-test <@ "-(1+2)" |> parseExpression |> parseExpression' = Integer -3 @>
-test <@ "2*3" |> parseExpression |> parseExpression' = Integer 6 @>
-test <@ "10/2" |> parseExpression |> parseExpression' = Integer 5 @>
-test <@ "2^3^2" |> parseExpression |> parseExpression' = Integer 512 @>
-test <@ "1+2*3" |> parseExpression |> parseExpression' = Integer 7 @>
-test <@ "4^5/1+2*3" |> parseExpression |> parseExpression' = Integer 1030 @>
+// val eval : (string -> Token)
+let eval = parseExpression >> evaluateExpression 
+
+test <@ "1" |> eval = Integer 1 @>
+test <@ "-1" |> eval = Integer -1 @>
+test <@ "1+2" |> eval = Integer 3 @>
+test <@ "1+-2" |> eval = Integer -1 @>
+test <@ "-(1+2)" |> eval = Integer -3 @>
+test <@ "2^3^2" |> eval = Integer 512 @>
+test <@ "1+2*3" |> eval = Integer 7 @>
+test <@ "4^5/1+2*3" |> eval = Integer 1030 @>
 
 module Program =
     [<EntryPoint>]
     let main _ =
         let lexemes = "1--2" |> parseExpression
-        let result = lexemes |> parseExpression'
+        let result = lexemes |> evaluateExpression
         0
