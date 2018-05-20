@@ -1,8 +1,5 @@
 using System;
 
-// TODO
-//  why does (2)) not fail? Assert EOF somewhere.
-
 namespace RecursiveDescentParser.Core
 {
     public class Parser
@@ -15,15 +12,18 @@ namespace RecursiveDescentParser.Core
             _lexer = lexer;
 
             // Initialize parser state.
-            _currentToken = _lexer.NextToken();
+            NextToken();
         }
 
         public int Parse()
         {
-            return ParseExpression();
+            var value = ParseExpression();
+            ExpectToken(TokenKind.Eof);
+            return value;
         }
 
         // Expression := Term | Expression "+" Term | Expression "-" Term
+        // Expression := Term | { "+" Term } | { "-" Term }
         public int ParseExpression()
         {
             // The basic idea to handle left recursion is to turn the recursion
@@ -56,12 +56,10 @@ namespace RecursiveDescentParser.Core
             // presedence level, we could look up the operators with that
             // precedence in the table to match on in the loop.
             var value = ParseTerm();
-            while (_currentToken.Kind == TokenKind.Plus || _currentToken.Kind == TokenKind.Minus)
+            while (IsToken(TokenKind.Plus) || IsToken(TokenKind.Minus))
             {
                 var op = _currentToken.Kind;
-                
-                // TODO: Call this pattern NextToken()
-                _currentToken = _lexer.NextToken();
+                NextToken();
                 if (op == TokenKind.Plus)
                 {
                     value += ParseTerm();
@@ -75,13 +73,14 @@ namespace RecursiveDescentParser.Core
         }
 
         // Term := Factor | Term "*" Factor | Term "/" Factor 
+        // Term := Factor | { "*" Factor } | { "/" Factor }
         public int ParseTerm()
         {
             var value = ParseFactor();
-            while (_currentToken.Kind == TokenKind.Multiplication || _currentToken.Kind == TokenKind.Division)
+            while (IsToken(TokenKind.Multiplication) || IsToken(TokenKind.Division))
             {
                 var op = _currentToken.Kind;
-                _currentToken = _lexer.NextToken();
+                NextToken();
                 if (op == TokenKind.Multiplication)
                 {
                     value *= ParseFactor();
@@ -95,6 +94,7 @@ namespace RecursiveDescentParser.Core
         }
 
         // Factor = Power | Factor "^" Power
+        // Factor = Power | { "^" Power }
         public int ParseFactor()
         {
             var value = ParsePower();
@@ -105,9 +105,9 @@ namespace RecursiveDescentParser.Core
             // make Power right associative, we can replace the while loop with
             // an if. Because ParseFactor is self-recursive the loop is
             // implicit.
-            if (_currentToken.Kind == TokenKind.Power)
+            if (IsToken(TokenKind.Power))
             {
-                _currentToken = _lexer.NextToken();
+                NextToken();
 
                 // Power is a right associative operator, but by calling
                 //
@@ -135,49 +135,45 @@ namespace RecursiveDescentParser.Core
             return value;
         }        
 
-        // Power := Integer | "(" Expr ")" 
+        // Power := Integer | "(" Expression ")" 
         public int ParsePower()
         {
-            if (_currentToken.Kind == TokenKind.Integer)
+            if (IsToken(TokenKind.Integer))
             {
                 var integer = Convert.ToInt32(_currentToken.Value);
-                _currentToken = _lexer.NextToken();
+                NextToken();
                 return integer;
             }
-            else if (_currentToken.Kind == TokenKind.LParen)
+            else if (MatchToken(TokenKind.LParen))
             {
-                _currentToken = _lexer.NextToken();
                 var value = ParseExpression();
                 ExpectToken(TokenKind.RParen);
                 return value;
             }
-            throw new Exception("Error");           
+            throw new Exception($"Expected 'Integer' or 'LParen'. Got '{_currentToken.Kind}'");
         }
 
-        // private void NextToken()
-        // {
-        //     _currentToken = _lexer.NextToken();
-        // }
+        private void NextToken() => _currentToken = _lexer.NextToken();
+        private bool IsToken(TokenKind kind) => _currentToken.Kind == kind;
 
-        // TODO: Call in code. Should it call next token if match?
-        // private bool MatchToken(TokenKind kind)
-        // {
-        //     if (_currentToken.Kind == kind)
-        //     {
-        //         NextToken();
-        //         return true;
-        //     }
-        //     else
-        //     {
-        //         return false;
-        //     }
-        // }
+        private bool MatchToken(TokenKind kind)
+        {
+            if (IsToken(kind))
+            {
+                NextToken();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
         private void ExpectToken(TokenKind kind)
         {
-            if (_currentToken.Kind == kind)
+            if (IsToken(kind))
             {
-                _currentToken = _lexer.NextToken();
+                NextToken();
             }
             else
             {
