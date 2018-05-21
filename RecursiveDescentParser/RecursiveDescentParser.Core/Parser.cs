@@ -22,9 +22,15 @@ namespace RecursiveDescentParser.Core
             return value;
         }
 
-        // Expression := Term | Expression "+" Term | Expression "-" Term
-        // Expression := Term | { "+" Term } | { "-" Term }
-        public int ParseExpression()
+        // Expression := Addition
+        private int ParseExpression()
+        {
+            var value = ParseAddition();
+            return value;
+        }
+
+        // Addition := Multiplication | { "+" Multiplication } | { "-" Multiplication }
+        private int ParseAddition()
         {
             // The basic idea to handle left recursion is to turn the recursion
             // into iteration. The first call to ParseTerm() evaluates the
@@ -55,55 +61,47 @@ namespace RecursiveDescentParser.Core
             // passing a precedence level to ParseExpression. Based on the
             // presedence level, we could look up the operators with that
             // precedence in the table to match on in the loop.
-            var value = ParseTerm();
+            var value = ParseMultiplication();
             while (IsToken(TokenKind.Plus) || IsToken(TokenKind.Minus))
             {
                 var op = _currentToken.Kind;
                 NextToken();
                 if (op == TokenKind.Plus)
                 {
-                    value += ParseTerm();
+                    value += ParseMultiplication();
                 }
                 else if (op == TokenKind.Minus)
                 {
-                    value -= ParseTerm();
+                    value -= ParseMultiplication();
                 }
             }
             return value;
         }
 
-        // TODO: Create test for "-1" = -1 and "2+-3" = -1
-        // public int ParseUnary()
-        // {
-        //     return MatchToken(TokenKind.Minus) ? -parse_expr2() : parse_expr3();  // handles not not -2 but -------2. If only first one is desired then parse_expr3 for both conditions.
-        // }
-
-        // Term := Factor | Term "*" Factor | Term "/" Factor 
-        // Term := Factor | { "*" Factor } | { "/" Factor }
-        public int ParseTerm()
+        // Multiplication := Power | { "*" Power } | { "/" Power }
+        private int ParseMultiplication()
         {
-            var value = ParseFactor();
+            var value = ParsePower();
             while (IsToken(TokenKind.Multiplication) || IsToken(TokenKind.Division))
             {
                 var op = _currentToken.Kind;
                 NextToken();
                 if (op == TokenKind.Multiplication)
                 {
-                    value *= ParseFactor();
+                    value *= ParsePower();
                 }
                 else if (op == TokenKind.Division)
                 {
-                    value /= ParseFactor();
+                    value /= ParsePower();
                 }
             }
             return value;
         }
 
-        // Factor = Power | Factor "^" Power
-        // Factor = Power | { "^" Power }
-        public int ParseFactor()
+        // Power = Unary | { "^" Unary }
+        private int ParsePower()
         {
-            var value = ParsePower();
+            var value = ParseUnary();
 
             // Compared to ParseExpression() and ParseTerm(), we don't need to
             // save the op = _token.Type before ReadToken() as there can only be
@@ -130,7 +128,10 @@ namespace RecursiveDescentParser.Core
                 // the remaining b^c before returning its value to previous
                 // invocation of ParseFactor. And thus, right associativity is
                 // achieved.
-                var power = ParseFactor();
+                //
+                // Strictly speaking the grammar rule should be changed
+                // accordingly: Power = Unary | { "^" Power }.
+                var power = ParsePower();
                 var base_ = value;
                 value = 1;
                 for (var i = 0; i < power; i++)
@@ -141,8 +142,29 @@ namespace RecursiveDescentParser.Core
             return value;
         }        
 
-        // Power := Integer | "(" Expression ")" 
-        public int ParsePower()
+        // Unary := '-' Unary | Primary
+        private int ParseUnary()
+        {
+            if (MatchToken(TokenKind.Minus))
+            {
+                // Because of the call to ParseUnary(), we parse not just -2 but
+                // --2, ---2 and so forth correctly. If we only wanted to allow
+                // a sigle sign, we'd change ParseUnary() to ParsePrimary().
+                // Note also that the unary operator is right associative, i.e.,
+                // --42 = -(-42). Unlike with ParsePower() the order in which
+                // the change of sign is applied doesn't affect the outcome.
+                var value = ParseUnary();
+                return -value;
+            } 
+            else
+            {
+                var value = ParsePrimary();
+                return value;
+            } 
+        }
+
+        // Primary := Integer | "(" Expression ")"
+        private int ParsePrimary()
         {
             if (IsToken(TokenKind.Integer))
             {
