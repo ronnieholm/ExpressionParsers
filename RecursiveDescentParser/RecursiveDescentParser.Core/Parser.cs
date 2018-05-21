@@ -22,14 +22,14 @@ namespace RecursiveDescentParser.Core
             return value;
         }
 
-        // Expression := Addition
+        // Expression = Addition
         private int ParseExpression()
         {
             var value = ParseAddition();
             return value;
         }
 
-        // Addition := Multiplication | { "+" Multiplication } | { "-" Multiplication }
+        // Addition = Multiplication | { "+" Multiplication } | { "-" Multiplication }
         private int ParseAddition()
         {
             // The basic idea to handle left recursion is to turn the recursion
@@ -78,7 +78,7 @@ namespace RecursiveDescentParser.Core
             return value;
         }
 
-        // Multiplication := Power | { "*" Power } | { "/" Power }
+        // Multiplication = Power | { "*" Power } | { "/" Power }
         private int ParseMultiplication()
         {
             var value = ParsePower();
@@ -129,8 +129,8 @@ namespace RecursiveDescentParser.Core
                 // invocation of ParseFactor. And thus, right associativity is
                 // achieved.
                 //
-                // Strictly speaking the grammar rule should be changed
-                // accordingly: Power = Unary | { "^" Power }.
+                // Strictly speaking the grammar rule should be changed to
+                // reflect right associativity: Power = Unary | { "^" Power }.
                 var power = ParsePower();
                 var base_ = value;
                 value = 1;
@@ -142,7 +142,7 @@ namespace RecursiveDescentParser.Core
             return value;
         }        
 
-        // Unary := '-' Unary | Primary
+        // Unary = '-' Unary | Primary
         private int ParseUnary()
         {
             if (MatchToken(TokenKind.Minus))
@@ -163,7 +163,7 @@ namespace RecursiveDescentParser.Core
             } 
         }
 
-        // Primary := Integer | "(" Expression ")"
+        // Primary = Integer | "(" Expression ")"
         private int ParsePrimary()
         {
             if (IsToken(TokenKind.Integer))
