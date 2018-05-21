@@ -72,6 +72,12 @@ namespace RecursiveDescentParser.Core
             return value;
         }
 
+        // TODO: Create test for "-1" = -1 and "2+-3" = -1
+        // public int ParseUnary()
+        // {
+        //     return MatchToken(TokenKind.Minus) ? -parse_expr2() : parse_expr3();  // handles not not -2 but -------2. If only first one is desired then parse_expr3 for both conditions.
+        // }
+
         // Term := Factor | Term "*" Factor | Term "/" Factor 
         // Term := Factor | { "*" Factor } | { "/" Factor }
         public int ParseTerm()

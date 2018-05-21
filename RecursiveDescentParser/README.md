@@ -42,7 +42,7 @@ more descriptive grammar might be this one:
     Power = Primary | { "^" Primary }
     ---
     Power = Unary | { "^" Unary }
-    Unary := '-' Unary | Primary
+    Unary := '-' Unary | Primary                  // can this handle -2 or -----2?
     ---
     Primary := Integer | "(" Expression ")" 
     Integer := Digit | { Digit }
@@ -71,6 +71,8 @@ abstract syntax tree nodes from each parse method. Because we know the
 evaluation is correct with respect to associativity and precedence, so would the
 abstract syntax tree be.
 
+## References
+
 - [Compiler construction](https://www.inf.ethz.ch/personal/wirth/CompilerConstruction/CompilerConstruction1.pdf)
 by Niklaus Wirth, Chapter 2 through to 4.1 (12 pages). These pages describes,
 with examples, almost everything required to construct a recursive descent
@@ -78,7 +80,7 @@ parser.
 
 - For an example of how to implement a similar expression parser in C, refer to
 [Programming an x64 compiler from scratch - part 2](https://www.youtube.com/watch?v=Mx29YQ4zAuM) starting at offset 2h30m and ending at offset 3h28m.
-Transforming the C implementation with its global variables and use of C idioms into C# isn't a one-to-one converstion.
+Transforming the C implementation with its global variables and use of C idioms into C# isn't a one-to-one converstion. https://www.youtube.com/watch?v=0woxSWjWsb8 and https://www.youtube.com/watch?v=L4P98pGhpnE are worth a cursory look with some overlap to the first video.
 
 - [Crafting Interpreter](http://craftinginterpreters.com/contents.html by Bob Nystrom), Chapter 6. Explains how to modify a grammer to encode precedence levels. Explains the build-up of an expression grammar slightly more advanced than ours, and with more intuitively named productions.
 
