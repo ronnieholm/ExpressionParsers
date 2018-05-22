@@ -6,24 +6,22 @@ namespace RecursiveDescentParser.Core
     {
         // Alternative: enumeration could start at 128, encoding any single
         // charactor ASCII token as itself. That way, we need not explicitly
-        // define tokens for the punctuation characters, for instance. This kind
-        // makes sense in a languages such as C where enum values are integers
-        // and the conversion between chars and integers is implicit. In the
-        // lexer switch statement, we could match all cases of punctuation
-        // tokens like we do with numbers.
+        // define tokens for the single character tokens. Then in the lexer's
+        // switch statement, we could match these tokens like we do with
+        // numbers, but with a simpler token return.
         //
-        // Howerver, this approach doesn't work well with C# because type
-        // conversions between char and integer isn't implicit. Whenever we'd
-        // need to construct a new Token we'd have to do "(TokenType)_ch" and
-        // whenever in the parser we'd want to compare the token then we'd need
-        // to do "_token.Type == (TokenType)'('". Printing error messages from
-        // within the parser, such as from the ExpectToken method, would also
-        // we'd have to check if the type is < 128 and explicitly convert the
-        // token type to a char (or call a PrintToken method). For token types <
-        // 128, the error message would become "Expected token: '('" rather than
-        // Expected token: LParen.
+        // This approach doesn't work as well with C# because type conversions
+        // between char and integer aren't implicit. Whenever we need to
+        // construct a new Token we have to do "(TokenKind)_ch" and whenever in
+        // the parser we need to compare token type we need to do "_token.Kind
+        // == (TokenKind)'('". Printing error messages from within the parser we
+        // would have to check if the kind is < 128 and then convert it to a
+        // char or have a PrintToken method do it. For kinds < 128, the error
+        // message would become "Expected token: '('". With expclit tokens as
+        // below it's "Expected token: LParen".
         Eof,
         Integer,
+        Float,
         Plus,
         Minus,
         Multiplication,
@@ -36,10 +34,11 @@ namespace RecursiveDescentParser.Core
     // A common approach to creating a lexer is to define a Token class which
     // holds a TokenType enum and the string matched by the enum and possibly
     // offsets into the input for error reporting. That way related information
-    // stay together. But because an integer or float matched isn't a string, it
-    // would need to be converted to a string. Then when needed, the parser
-    // would have to convert the string back to its actual type. These two
-    // conversions, while minor in terms of performance, are redundant.
+    // stay together. But because an integer or float matched isn't a string
+    // (and C# doesn't support union types), it would need to be converted to a
+    // string. Then when needed, the parser would have to convert the string
+    // back to its actual type. These two conversions, while minor in terms of
+    // performance, are redundant.
     //
     // A coulple of alternatives exist to metigate those, but unless performance
     // is truly critical, they make the code harder to read and are best
@@ -65,6 +64,15 @@ namespace RecursiveDescentParser.Core
     // the problem described above by turning Value into an integer.
     public class Token
     {
+        // TODO: Store Start and End as well. In principle, since we have Start
+        // end End we can infer value and don't need to pass it. We do pass it
+        // anyway since some computation might have been involved like with the
+        // integer. In some cases the value may be different than the literal
+        // source text. For instance, a float in the source may be 3,14 whereas
+        // its value is 3.14.
+        //
+        // TODO: Extend SyntaxError in lexer and parser with visual indicator of
+        // error in source text.
         public TokenKind Kind { get; private set; }
         public string Value { get; private set; }
 
@@ -83,35 +91,30 @@ namespace RecursiveDescentParser.Core
     public class Lexer
     {
         string _input;
-        char _currentCharacter;
-        int _nextPos;
+        int _currentPos;
 
         public Lexer(string input)
         {
             _input = input;
-
-            // Initialize lexer state.
-            NextCharacter();
         }
 
         public Token NextToken()
         {
-            // Alternative: we couldn've started of with 
+            // Alternative: we couldn've started off with 
             //
-            // while (_ch == ' ' || _ch == '\n' || _ch == '\r' || 
-            //        _ch == '\t' || _ch == 'v') 
+            // while (char.IsWhiteSpace(GetCurrentCharacter())) 
             // {
-            //     ReadCharacter();    
+            //     _currentPos++;
             // }
             //
-            // which would consume leading whitespace, but instead we decided to
-            // handle whitespace in the switch statement using a goto statement.
-            // We wanted a uniform treatment of characters. Consuming whitespace
-            // like above biases the lexer toward whitespace. For each character 
+            // to consume leading whitespace, but instead we decided to handle
+            // whitespace in the switch statement using a goto statement. We
+            // wanted a uniform treatment of characters. Consuming whitespace
+            // like above biases the lexer toward whitespace. For each character
             // the while expression is evaluated which depending on the language
             // being lexer may be slightly inefficient.
         retry:
-            switch (_currentCharacter)
+            switch (GetCurrentCharacter())
             {
                 case '\0':
                     return new Token(TokenKind.Eof);
@@ -125,52 +128,117 @@ namespace RecursiveDescentParser.Core
                 case '7':
                 case '8':
                 case '9':
-                    var integer = _currentCharacter - '0';
-                    NextCharacter();
-                    while (char.IsDigit(_currentCharacter))
+                    // One we know whether we're at a float or integer, we'll
+                    // backtrack using the position bookmark and call the
+                    // appropriate scanner.
+                    var bookmark = _currentPos;
+                    while (char.IsDigit(GetCurrentCharacter()))
                     {
-                        integer *= 10;
-                        integer += _currentCharacter - '0';
-                        NextCharacter();
+                        _currentPos++;
                     }
-                    return new Token(TokenKind.Integer, integer.ToString());
+                    if (GetCurrentCharacter() == '.')
+                    {
+                        _currentPos = bookmark;
+                        var float_ = ScanFloat();
+                        return new Token(TokenKind.Float, float_.ToString());                       
+                    }
+                    else
+                    {
+                        _currentPos = bookmark;
+                        var integer = ScanInteger();
+                        return new Token(TokenKind.Integer, integer.ToString());    
+                    }
                 case '+':
-                    NextCharacter();
+                    _currentPos++;
                     return new Token(TokenKind.Plus);
                 case '-':
-                    NextCharacter();
+                    _currentPos++;
                     return new Token(TokenKind.Minus);                
                 case '*':
-                    NextCharacter();
+                    _currentPos++;
                     return new Token(TokenKind.Multiplication);                
                 case '/':
-                    NextCharacter();
+                    _currentPos++;
                     return new Token(TokenKind.Division);            
                 case '^':
-                    NextCharacter();
+                    _currentPos++;
                     return new Token(TokenKind.Power);            
                 case '(':
-                    NextCharacter();
+                    _currentPos++;
                     return new Token(TokenKind.LParen);                
                 case ')':
-                    NextCharacter();
+                    _currentPos++;
                     return new Token(TokenKind.RParen);
                 case ' ':
                 case '\n':
                 case '\r':
                 case '\t':
                 case '\v':
-                    NextCharacter();
+                    _currentPos++;
                     goto retry;
                 default:
-                    throw new Exception($"Unknown character: '{_currentCharacter}'");
+                    ReportSyntaxError();
+                    throw new Exception("Unreachable");
             }
         }
 
-        private void NextCharacter()
+        // Integer = Digit | Integer Digit
+        private int ScanInteger()
         {
-            _currentCharacter = _nextPos < _input.Length ? _input[_nextPos] : '\0';
-            _nextPos++;
+            var integer = GetCurrentCharacter() - '0';
+            _currentPos++;
+            while (char.IsDigit(GetCurrentCharacter()))
+            {
+                integer *= 10;
+                integer += GetCurrentCharacter() - '0';
+                _currentPos++;
+            }
+            return integer;
+        }
+
+        // Float = Integer "." Integer
+        private float ScanFloat()
+        {
+            var start = _currentPos;
+            while (char.IsDigit(GetCurrentCharacter()))
+            {
+                _currentPos++;
+            }
+            _currentPos++;
+            if (!char.IsDigit(GetCurrentCharacter()))
+            {
+                ReportSyntaxError("digit");
+            }
+            while (char.IsDigit(GetCurrentCharacter()))
+            {
+                _currentPos++;
+            }
+            var end = _currentPos;
+
+            // The reason why we have two while loops, one for the
+            // characteristic and one for the mantissa, instead of calls to
+            // ScanInteger is that the mantisse could be a number prefixed by
+            // zero. In the case the integer returned wouldn't be correct.
+            // Instead we locate the start and end positions of the float.
+            var floatString = _input.Substring(start, end - start);
+            return float.Parse(floatString);
+        }
+
+        private char GetCurrentCharacter()
+        {
+            var c = _currentPos < _input.Length ? _input[_currentPos] : '\0';
+            return c;            
+        }
+
+        private void ReportSyntaxError()
+        {
+            throw new Exception($"Unexpected character. Got '{GetCurrentCharacter()}'");
+        }
+
+        private void ReportSyntaxError(string expected)
+        {
+            var character = GetCurrentCharacter() == '\0' ? "Eof" : GetCurrentCharacter().ToString();
+            throw new Exception($"Expected {expected}. Got '{character}'");
         }
     }
 }

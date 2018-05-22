@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 
 namespace RecursiveDescentParser.Core
 {
@@ -15,7 +16,7 @@ namespace RecursiveDescentParser.Core
             NextToken();
         }
 
-        public int Parse()
+        public double Parse()
         {
             var value = ParseExpression();
             ExpectToken(TokenKind.Eof);
@@ -23,14 +24,14 @@ namespace RecursiveDescentParser.Core
         }
 
         // Expression = Addition
-        private int ParseExpression()
+        private double ParseExpression()
         {
             var value = ParseAddition();
             return value;
         }
 
         // Addition = Multiplication | { "+" Multiplication } | { "-" Multiplication }
-        private int ParseAddition()
+        private double ParseAddition()
         {
             // The basic idea to handle left recursion is to turn the recursion
             // into iteration. The first call to ParseTerm() evaluates the
@@ -79,7 +80,7 @@ namespace RecursiveDescentParser.Core
         }
 
         // Multiplication = Power | { "*" Power } | { "/" Power }
-        private int ParseMultiplication()
+        private double ParseMultiplication()
         {
             var value = ParsePower();
             while (IsToken(TokenKind.Multiplication) || IsToken(TokenKind.Division))
@@ -99,7 +100,7 @@ namespace RecursiveDescentParser.Core
         }
 
         // Power = Unary | { "^" Unary }
-        private int ParsePower()
+        private double ParsePower()
         {
             var value = ParseUnary();
 
@@ -143,7 +144,7 @@ namespace RecursiveDescentParser.Core
         }        
 
         // Unary = '-' Unary | Primary
-        private int ParseUnary()
+        private double ParseUnary()
         {
             if (MatchToken(TokenKind.Minus))
             {
@@ -163,14 +164,24 @@ namespace RecursiveDescentParser.Core
             } 
         }
 
-        // Primary = Integer | "(" Expression ")"
-        private int ParsePrimary()
+        // Primary = Integer | Float | "(" Expression ")"
+        private double ParsePrimary()
         {
             if (IsToken(TokenKind.Integer))
             {
-                var integer = Convert.ToInt32(_currentToken.Value);
+                var integer = int.Parse(_currentToken.Value);
                 NextToken();
                 return integer;
+            }
+            else if (IsToken(TokenKind.Float))
+            {
+                // Even though we semantically call it a float, we use the
+                // double type to represent it. The higher precision of double
+                // over float leads to fewer rounding error. With float, an
+                // input of "3.14" would become 3.14000010490417.
+                var float_ = double.Parse(_currentToken.Value, CultureInfo.InvariantCulture);
+                NextToken();
+                return float_;               
             }
             else if (MatchToken(TokenKind.LParen))
             {
@@ -178,7 +189,13 @@ namespace RecursiveDescentParser.Core
                 ExpectToken(TokenKind.RParen);
                 return value;
             }
-            throw new Exception($"Expected 'Integer' or 'LParen'. Got '{_currentToken.Kind}'");
+
+            // If token isn't matched ealier in the call chain we end up here.
+            // The syntax errors reported deal with known tokens in an
+            // unexpected place, such as "2+(". Unknown tokens, such % are
+            // reported by the lexer.
+            ReportSyntaxError(new[] { TokenKind.Integer, TokenKind.Float, TokenKind.LParen });
+            throw new Exception("Unreachable");
         }
 
         private void NextToken() => _currentToken = _lexer.NextToken();
@@ -205,8 +222,16 @@ namespace RecursiveDescentParser.Core
             }
             else
             {
-                throw new Exception($"Expected token '{kind}'. Got '{_currentToken.Kind}'");
+                ReportSyntaxError(kind);
             }
+        }
+
+        private void ReportSyntaxError(TokenKind expected) => ReportSyntaxError(new[] {expected});
+
+        private void ReportSyntaxError(TokenKind[] expected)
+        {           
+            var kinds = $"'{string.Join("', '", expected)}'";            
+            throw new Exception($"Expected {kinds}. Got '{_currentToken.Kind}'");
         }
     }
 }

@@ -7,17 +7,19 @@ namespace RecursiveDescentParser.Tests
     public class LexerTests
     {
         [Fact]
-        public void IntegerLiteral()
+        public void Tokens()
         {
-            var l = new Lexer("42+-*/^");
+            var l = new Lexer("42+-*/^3.14");
             TestToken(l.NextToken(), TokenKind.Integer, "42");
             TestToken(l.NextToken(), TokenKind.Plus);
             TestToken(l.NextToken(), TokenKind.Minus);
             TestToken(l.NextToken(), TokenKind.Multiplication);
             TestToken(l.NextToken(), TokenKind.Division);
             TestToken(l.NextToken(), TokenKind.Power);
+            TestToken(l.NextToken(), TokenKind.Float, "3.14");
             TestToken(l.NextToken(), TokenKind.Eof);
         }
+       
 
         [Fact]
         public void AddExpression()
