@@ -9,7 +9,7 @@ namespace RecursiveDescentParser.Tests
         [Fact]
         public void Tokens()
         {
-            var l = new Lexer("0 0.0 42 + - * / ^ 3.14");
+            var l = new Lexer("0 0.0 42 + - * / ^ 3.14 ()");
             AssertToken(l.NextToken(), TokenKind.Integer, "0");
             AssertToken(l.NextToken(), TokenKind.Float, "0");
             AssertToken(l.NextToken(), TokenKind.Integer, "42");
@@ -19,6 +19,8 @@ namespace RecursiveDescentParser.Tests
             AssertToken(l.NextToken(), TokenKind.Division);
             AssertToken(l.NextToken(), TokenKind.Power);
             AssertToken(l.NextToken(), TokenKind.Float, "3.14");
+            AssertToken(l.NextToken(), TokenKind.LParen);
+            AssertToken(l.NextToken(), TokenKind.RParen);            
             AssertToken(l.NextToken(), TokenKind.Eof);
         }       
 
