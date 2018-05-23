@@ -126,7 +126,7 @@ would no longer be one-pass but two-pass.
 
 - Per Vognsen's [Programming an x64 compiler from scratch - part 2](https://www.youtube.com/watch?v=Mx29YQ4zAuM), offsets 2h30m to 3h28m. Implements a simple expression parser in C. Also [Bitwise, Day 2: C Programming & Parsing](https://www.youtube.com/watch?v=0woxSWjWsb8) and [Bitwise, Day 3: More Programming & Parsing](https://www.youtube.com/watch?v=L4P98pGhpnE) are worth a look, though with some overlap.
 
-- Bob Nystrom's [Crafting Interpreter](http://craftinginterpreters.com/contents.html), Chapter 6. Details how to modify an expression grammar to encode precedence levels.
+- Bob Nystrom's [Crafting Interpreters](http://craftinginterpreters.com/parsing-expressions.html), Chapter 6. Details how to modify an expression grammar to encode precedence levels.
 
 - Eli Bendersky's [Some problems of recursive descent
   parsers](https://eli.thegreenplace.net/2009/03/14/some-problems-of-recursive-descent-parsers).
