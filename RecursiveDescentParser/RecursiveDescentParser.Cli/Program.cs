@@ -1,5 +1,6 @@
 ﻿using System;
 using RecursiveDescentParser.Core;
+using static System.Console;
 
 namespace RecursiveDescentParser.Cli
 {
@@ -7,15 +8,15 @@ namespace RecursiveDescentParser.Cli
     {
         static void Main(string[] args)
         {         
-            Console.WriteLine("Enter expression. Ctrl-c for exit.");
+            WriteLine("Enter expression. Press Ctrl-c to exit.");
             while (true)
             {
-                Console.Write("> ");
+                Write("> ");
                 var input = Console.ReadLine();
                 var lexer = new Lexer(input);
                 var parser = new Parser(lexer);
                 var result = parser.Parse();
-                Console.WriteLine(result);
+                WriteLine(result);
             }
         }
     }

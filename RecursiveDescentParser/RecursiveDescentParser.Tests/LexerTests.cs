@@ -20,18 +20,7 @@ namespace RecursiveDescentParser.Tests
             AssertToken(l.NextToken(), TokenKind.Power);
             AssertToken(l.NextToken(), TokenKind.Float, "3.14");
             AssertToken(l.NextToken(), TokenKind.Eof);
-        }
-       
-
-        [Fact]
-        public void AddExpression()
-        {
-            var l = new Lexer("42 + 64");
-            AssertToken(l.NextToken(), TokenKind.Integer, "42");
-            AssertToken(l.NextToken(), TokenKind.Plus);
-            AssertToken(l.NextToken(), TokenKind.Integer, "64");
-            AssertToken(l.NextToken(), TokenKind.Eof);
-        }
+        }       
 
         [Fact]
         public void SkipWhitespace()
