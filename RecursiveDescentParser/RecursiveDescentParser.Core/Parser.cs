@@ -61,9 +61,15 @@ namespace RecursiveDescentParser.Core
 
             // Alternative: suppose the lexer had many token kinds for which to
             // check. Then adding each kind to the while condition would be
-            // cumbersome and inefficient. Instead convert the or check into a
-            // range check by adding to TokenKind FirstPlus and LastPlus with
-            // actual tokens in between. The while condition would become: 
+            // cumbersome and inefficient. Instead convert the or-check into a
+            // range-check by adding to TokenKind FirstPlus and LastPlus like
+            //
+            // FirstPlus,
+            // Add = FirstPlus,
+            // Minus,
+            // LastPlus = Minus,
+            //
+            // The while condition would become: 
             //
             // TokenKind.FirstPlus <= _currentToken.Kind && _currentToken.Kind
             // <= TokenKind.LastPlus
