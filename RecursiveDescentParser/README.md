@@ -1,9 +1,10 @@
 # Recursive descent parser for mathematical language
 
 This project implements a recursive descent LL(1) parser for a mathematical
-expression language. Using precedence climbing, it supports correct handling of
-associativity and precedence for the unary - operator, for the binary +, -, *,
-/, ^ operators. It supports both integer and float type of operands.
+expression language. Using operator precedence climbing, it supports correct
+handling of associativity and precedence for the unary - operator, for the
+binary +, -, *, /, ^ operators. It supports both integer and float type of
+operands.
 
 The [BNF](https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form) grammar below
 isn't the final one. It's presented as a textbook example. We evolve it into a
@@ -80,9 +81,10 @@ rewriting the grammar to the one below:
     Primary = Integer | "(" Expression ")"
 
 Favoring readability over compactness, and extending the grammar with unary
-minus and float support, we end up with this final grammar which is what the parser
-implements. Naming a rule ```Addition``` or ```Multiplication``` is short for
-addition or multiplication-like precedence.
+minus and float support, we end up with this final grammar which is what the
+parser implements. Naming a rules ```Addition```, ```Multiplication```,
+```Power``` is short for operators with addition, multiplication, and power-like
+precedence.
 
     // Parser rules
     Expression = Addition
