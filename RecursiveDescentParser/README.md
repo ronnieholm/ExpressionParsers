@@ -1,4 +1,4 @@
-# Recursive descent parser for mathematical expression language
+# Recursive descent parser for mathematical language
 
 This project implements a recursive descent LL(1) parser for a mathematical
 expression language. Using precedence climbing, it supports correct handling of
@@ -80,7 +80,7 @@ rewriting the grammar to the one below:
     Primary = Integer | "(" Expression ")"
 
 Favoring readability over compactness, and extending the grammar with unary
-- and float support, we end up with this final grammar which is what the parser
+minus and float support, we end up with this final grammar which is what the parser
 implements. Naming a rule ```Addition``` or ```Multiplication``` is short for
 addition or multiplication-like precedence.
 
@@ -124,7 +124,7 @@ would no longer be one-pass but two-pass.
 
 - Per Vognsen's [Programming an x64 compiler from scratch - part 2](https://www.youtube.com/watch?v=Mx29YQ4zAuM), offsets 2h30m to 3h28m. Implements a simple expression parser in C. Also [Bitwise, Day 2: C Programming & Parsing](https://www.youtube.com/watch?v=0woxSWjWsb8) and [Bitwise, Day 3: More Programming & Parsing](https://www.youtube.com/watch?v=L4P98pGhpnE) are worth a look, though with some overlap.
 
-- Bob Nystrom's [Crafting Interpreter](http://craftinginterpreters.com/contents.html), Chapter 6. Details how to modify an expression grammer to encode precedence levels.
+- Bob Nystrom's [Crafting Interpreter](http://craftinginterpreters.com/contents.html), Chapter 6. Details how to modify an expression grammar to encode precedence levels.
 
 - Eli Bendersky's [Some problems of recursive descent
   parsers](https://eli.thegreenplace.net/2009/03/14/some-problems-of-recursive-descent-parsers).
