@@ -1,10 +1,10 @@
 # Recursive descent parser for mathematical language
 
-This project implements a recursive descent LL(1) parser for a mathematical
-expression language. Using operator precedence climbing, it supports correct
-handling of associativity and precedence for the unary - operator, for the
-binary +, -, *, /, ^ operators. It supports both integer and float type of
-operands.
+This project implements a backtracking lexer and a recursive descent LL(1)
+parser for a mathematical expression language. Using operator precedence
+climbing, it supports correct handling of associativity and precedence for the
+unary - operator, for the binary +, -, *, /, ^ operators. It supports both
+integer and float type of operands.
 
 The [BNF](https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form) grammar below
 isn't the final one. It's presented as a textbook example. We evolve it into a
@@ -114,7 +114,7 @@ order is correct with respect to associativity and precedence, so the Abstract
 Syntax Tree most be as well. Writing an evaluator for the AST, the interpreter
 would no longer be one-pass but two-pass.
 
-## Build
+## Build and run
 
     $ dotnet build
     $ dotnet test RecursiveDescentParser.Tests 
