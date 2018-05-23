@@ -4,21 +4,21 @@ namespace RecursiveDescentParser.Core
 {
     public enum TokenKind
     {
-        // Alternative: enumeration could start at 128, encoding any single
-        // charactor ASCII token as itself. That way, we need not explicitly
-        // define tokens for the single character tokens. Then in the lexer's
-        // switch statement, we could match these tokens like we do with
-        // numbers, but with a simpler token return.
+        // Alternative: to cut down on boilerplate, enumeration values could
+        // start at 128 rather than 0. This way any single charactor ASCII token
+        // could be encoded as itself. In the lexer's switch statement, we could
+        // match these tokens like we do with numbers but with a simpler, single
+        // return.
         //
-        // This approach doesn't work as well with C# because type conversions
-        // between char and integer aren't implicit. Whenever we need to
-        // construct a new Token we have to do "(TokenKind)_ch" and whenever in
-        // the parser we need to compare token type we need to do "_token.Kind
-        // == (TokenKind)'('". Printing error messages from within the parser we
-        // would have to check if the kind is < 128 and then convert it to a
-        // char or have a PrintToken method do it. For kinds < 128, the error
-        // message would become "Expected token: '('". With expclit tokens as
-        // below it's "Expected token: LParen".
+        // Printing error messages from within the parser, in a PrintToken
+        // method, we'd have to check if kind < 128 and printable and convert it
+        // to a char. For kinds < 128, the error message would read "Expected
+        // token: '('". With expclit tokens as below it reads "Expected token:
+        // LParen".
+
+        // Rather than terminate lexing on an unknown character, return a
+        // special kind.
+        Illegal,
         Eof,
         Integer,
         Float,
@@ -31,48 +31,47 @@ namespace RecursiveDescentParser.Core
         RParen
     }
 
-    // A common approach to creating a lexer is to define a Token class which
-    // holds a TokenType enum and the string matched by the enum and possibly
-    // offsets into the input for error reporting. That way related information
-    // stay together. But because an integer or float matched isn't a string
-    // (and C# doesn't support union types), it would need to be converted to a
-    // string. Then when needed, the parser would have to convert the string
-    // back to its actual type. These two conversions, while minor in terms of
-    // performance, are redundant.
+    // A typical approach to lexing is to have a Token class hold a TokenType
+    // enum, the string matched (the lexeme), and start and end positions into
+    // the input for error reporting. But because an integer or float matched
+    // isn't a string (and C# doesn't support C style unions), the integer or
+    // float would have to be stored in a string inside the Token. When
+    // required, the parser would convert the string to its actual type based on
+    // TokenKind. While minor, these two conversions are redundant.
     //
-    // A coulple of alternatives exist to metigate those, but unless performance
-    // is truly critical, they make the code harder to read and are best
-    // avoided:
+    // A couple of alternatives exist to mitigate, but unless performance is
+    // critical, they make the code harder to read and should be avoided:
     //
-    // 1. Return the TokenType (possibly renamed to Token) from ReadToken()
-    //    only. Calling code is then responsible for inspecting the TokenType
-    //    and getting the value from a property on the lexer. It would expose
-    //    values for string, integer, float, and so on. This way a token of any
-    //    type can be returned and accessed without conversion. On the downside,
-    //    it possible for the client to read the wrong property.
+    // 1. Return only TokenKind, possibly renamed to Token, from ReadToken().
+    //    Calling code is then responsible for inspecting the TokenKind and
+    //    getting the value from a property on the lexer. The lexer would expose
+    //    properties for string, integer, float, and so on. This way, a token of
+    //    any kind can be returned and accessed without conversion. On the
+    //    downside, it possible for the client to read the wrong property, and
+    //    it means more state management for the lexer.
     //
-    // 2. Define a generic Token<T> class where T is the of the literal, such as
+    // 2. Define a generic Token<T> type where T is the type matched, such as
     //    string, int, float, ... But then what to do for tokens with no
-    //    associated type? Maybe create it as type string an possibly leave the
-    //    value empty.
+    //    associated type, such and a + og -? Should we set T to string and
+    //    ignore the matched string? Or set the matched string to "+"?
     //
     // 3. Define specializations of Token. But since ReadToken() returns Token,
-    //    clients would be required to switch on the type to access the value.
+    //    clients would need to dispatch based on type of Token to access the
+    //    matched value.
     //
-    // The only token type our lexer supports where the type doesn't uniquely
-    // describe the value is the integer. In this simple lexer we could solve
-    // the problem described above by turning Value into an integer.
+    // This parser employs the string approach and converts integers, and floats
+    // to strings.
     public class Token
     {
-        // TODO: Store Start and End as well. In principle, since we have Start
-        // end End we can infer value and don't need to pass it. We do pass it
-        // anyway since some computation might have been involved like with the
-        // integer. In some cases the value may be different than the literal
-        // source text. For instance, a float in the source may be 3,14 whereas
-        // its value is 3.14.
+        // TODO: Save Start and End position, too. In principle, with Start end
+        // End, we can infer value and don't need to store it. We pass it anyway
+        // since some computation might have been involved with constructing it
+        // (such as with integers and floats). In some cases the string value
+        // may differ from the source text. For instance, a float in the source
+        // may be 3,14 (with comma) whereas its Value is "3.14."
         //
-        // TODO: Extend SyntaxError in lexer and parser with visual indicator of
-        // error in source text.
+        // TODO: Extend SyntaxError in lexer and parser with visual indicators
+        // of error position in source text.
         public TokenKind Kind { get; private set; }
         public string Value { get; private set; }
 
@@ -96,6 +95,10 @@ namespace RecursiveDescentParser.Core
         public Lexer(string input)
         {
             _input = input;
+
+            // No lexer state to initialize except for input because _currentPos
+            // is already default initialized to zero and _currentChar is
+            // computed based on _currentPos.
         }
 
         public Token NextToken()
@@ -107,12 +110,12 @@ namespace RecursiveDescentParser.Core
             //     _currentPos++;
             // }
             //
-            // to consume leading whitespace, but instead we decided to handle
-            // whitespace in the switch statement using a goto statement. We
-            // wanted a uniform treatment of characters. Consuming whitespace
-            // like above biases the lexer toward whitespace. For each character
-            // the while expression is evaluated which depending on the language
-            // being lexer may be slightly inefficient.
+            // to consume leading whitespace. Instead we handle whitespace in
+            // the switch statement using a goto statement. This provides a
+            // uniform treatment of characters. Consuming whitespace like above
+            // biases the lexer toward whitespace. For each character the while
+            // expression is evaluated which, depending on the language being
+            // lexed, may be inefficient.
         retry:
             switch (GetCurrentCharacter())
             {
@@ -128,9 +131,13 @@ namespace RecursiveDescentParser.Core
                 case '7':
                 case '8':
                 case '9':
-                    // One we know whether we're at a float or integer, we'll
-                    // backtrack using the position bookmark and call the
-                    // appropriate scanner.
+                    // Once we know whether we're at a float or integer, we'll
+                    // backtrack using the bookmark and call the appropriate
+                    // lexer method. Note that LL(1) refers to one token
+                    // lookahead at the parser level, not the lexer. A lot of
+                    // languages that are LL(1) at the token level aren't LL(1)
+                    // at the character level. To allow the parser to be LL(1)
+                    // is one reason for seperating the lexer and parser.
                     var bookmark = _currentPos;
                     while (char.IsDigit(GetCurrentCharacter()))
                     {
@@ -139,13 +146,13 @@ namespace RecursiveDescentParser.Core
                     if (GetCurrentCharacter() == '.')
                     {
                         _currentPos = bookmark;
-                        var float_ = ScanFloat();
+                        var float_ = LexFloat();
                         return new Token(TokenKind.Float, float_.ToString());                       
                     }
                     else
                     {
                         _currentPos = bookmark;
-                        var integer = ScanInteger();
+                        var integer = LexInteger();
                         return new Token(TokenKind.Integer, integer.ToString());    
                     }
                 case '+':
@@ -177,13 +184,12 @@ namespace RecursiveDescentParser.Core
                     _currentPos++;
                     goto retry;
                 default:
-                    ReportSyntaxError();
-                    throw new Exception("Unreachable");
+                    return new Token(TokenKind.Illegal, GetCurrentCharacter().ToString());
             }
         }
 
         // Integer = Digit | Integer Digit
-        private int ScanInteger()
+        private int LexInteger()
         {
             var integer = GetCurrentCharacter() - '0';
             _currentPos++;
@@ -197,7 +203,7 @@ namespace RecursiveDescentParser.Core
         }
 
         // Float = Integer "." Integer
-        private float ScanFloat()
+        private float LexFloat()
         {
             var start = _currentPos;
             while (char.IsDigit(GetCurrentCharacter()))
@@ -217,9 +223,9 @@ namespace RecursiveDescentParser.Core
 
             // The reason why we have two while loops, one for the
             // characteristic and one for the mantissa, instead of calls to
-            // ScanInteger is that the mantisse could be a number prefixed by
-            // zero. In the case the integer returned wouldn't be correct.
-            // Instead we locate the start and end positions of the float.
+            // LexInteger is that the mantisse could be a zero-prefixed number.
+            // In that case the integer returned wouldn't be correct. Instead we
+            // locate the start and end position of the float.
             var floatString = _input.Substring(start, end - start);
             return float.Parse(floatString);
         }
@@ -228,11 +234,6 @@ namespace RecursiveDescentParser.Core
         {
             var c = _currentPos < _input.Length ? _input[_currentPos] : '\0';
             return c;            
-        }
-
-        private void ReportSyntaxError()
-        {
-            throw new Exception($"Unexpected character. Got '{GetCurrentCharacter()}'");
         }
 
         private void ReportSyntaxError(string expected)

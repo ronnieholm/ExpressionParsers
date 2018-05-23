@@ -9,21 +9,12 @@ namespace RecursiveDescentParser.Tests
         [Theory]
         [InlineData("42", 42)]
         [InlineData("-42", -42)]
-        [InlineData("--42", 42)]
-        public void IntegerLiteral(string input, int expected)
-        {
-            var l = new Lexer(input);
-            var p = new Parser(l);
-            var i = p.Parse();
-            Assert.Equal(expected, i);
-        }
-
-        [Theory]
+        [InlineData("--42", 42)]        
         [InlineData("(42)", 42)]
         [InlineData("((42))", 42)]
         [InlineData("(((42)))", 42)]
         [InlineData("-(42)", -42)]
-        public void Parenthesis(string input, int expected)
+        public void IntegerLiteral(string input, int expected)
         {
             var l = new Lexer(input);
             var p = new Parser(l);
@@ -43,7 +34,7 @@ namespace RecursiveDescentParser.Tests
         [InlineData("2^3^2", 512)]        
         [InlineData("-(2 + 3) * 4", -20)]
         [InlineData("-(-2 + -3) * --4", 20)]
-        public void Parse(string input, int expected)
+        public void Operators(string input, int expected)
         {
             var l = new Lexer(input);
             var p = new Parser(l);
