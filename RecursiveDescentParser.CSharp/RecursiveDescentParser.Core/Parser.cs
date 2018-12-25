@@ -208,9 +208,9 @@ namespace RecursiveDescentParser.Core
                 // ---2 and so on correctly. The latter is parsed as -(-(-2)) If
                 // we only wanted to allow a single sign, we could change
                 // ParseUnary() below to ParsePrimary().
-                var value = ParseUnary();
+                var value = -ParseUnary();
                 _tracer.Exit(value);
-                return -value;
+                return value;
             } 
             else
             {
