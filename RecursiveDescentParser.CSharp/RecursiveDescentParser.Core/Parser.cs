@@ -9,7 +9,7 @@ namespace RecursiveDescentParser.Core
 
         public void Enter(string rule, Token token)
         {
-            Console.WriteLine($"{new string(' ', _indentation)}Rule: {rule}, Kind: {token.Kind}, Value: {token.Value}");
+            Console.WriteLine($"{new string(' ', _indentation)}Rule: {rule}, Value: {token.Value}");
             Console.Out.Flush();
             _indentation += 4;
         }

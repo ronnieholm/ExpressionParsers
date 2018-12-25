@@ -15,13 +15,13 @@ For single integer, we see how every parsing rule is activated in their order of
 
 ```
 > 1
-Rule: Parse, Kind: Integer, Value: 1
-    Rule: ParseExpression, Kind: Integer, Value: 1
-        Rule: ParseAddition, Kind: Integer, Value: 1
-            Rule: ParseMultiplication, Kind: Integer, Value: 1
-                Rule: ParsePower, Kind: Integer, Value: 1
-                    Rule: ParseUnary, Kind: Integer, Value: 1
-                        Rule: ParsePrimary, Kind: Integer, Value: 1
+Rule: Parse, Value: 1
+    Rule: ParseExpression, Value: 1
+        Rule: ParseAddition, Value: 1
+            Rule: ParseMultiplication, Value: 1
+                Rule: ParsePower, Value: 1
+                    Rule: ParseUnary, Value: 1
+                        Rule: ParsePrimary, Value: 1
                         Result: 1
                     Result: 1
                 Result: 1
@@ -29,6 +29,7 @@ Rule: Parse, Kind: Integer, Value: 1
         Result: 1
     Result: 1
 Result: 1
+
 ```
 
 And the same single integer parenthesized. We first go down the rules until ParsePrimary is reached.
@@ -38,19 +39,19 @@ parsed first, setting aside any presedence rule of what surrounds the parenthesi
 
 ```
 > (1)
-Rule: Parse, Kind: LParen, Value: 
-    Rule: ParseExpression, Kind: LParen, Value: 
-        Rule: ParseAddition, Kind: LParen, Value: 
-            Rule: ParseMultiplication, Kind: LParen, Value: 
-                Rule: ParsePower, Kind: LParen, Value: 
-                    Rule: ParseUnary, Kind: LParen, Value: 
-                        Rule: ParsePrimary, Kind: LParen, Value: 
-                            Rule: ParseExpression, Kind: Integer, Value: 1
-                                Rule: ParseAddition, Kind: Integer, Value: 1
-                                    Rule: ParseMultiplication, Kind: Integer, Value: 1
-                                        Rule: ParsePower, Kind: Integer, Value: 1
-                                            Rule: ParseUnary, Kind: Integer, Value: 1
-                                                Rule: ParsePrimary, Kind: Integer, Value: 1
+Rule: Parse, Value: 
+    Rule: ParseExpression, Value: 
+        Rule: ParseAddition, Value: 
+            Rule: ParseMultiplication, Value: 
+                Rule: ParsePower, Value: 
+                    Rule: ParseUnary, Value: 
+                        Rule: ParsePrimary, Value: 
+                            Rule: ParseExpression, Value: 1
+                                Rule: ParseAddition, Value: 1
+                                    Rule: ParseMultiplication, Value: 1
+                                        Rule: ParsePower, Value: 1
+                                            Rule: ParseUnary, Value: 1
+                                                Rule: ParsePrimary, Value: 1
                                                 Result: 1
                                             Result: 1
                                         Result: 1
@@ -64,27 +65,29 @@ Rule: Parse, Kind: LParen, Value:
         Result: 1
     Result: 1
 Result: 1
+
 ```
 
 For addition, we see repeated calls to the rule beyond addition, namely Multiplication.
 That's because inside ParseAddition, for each operand, we call ParseMultiplication in a loop.
 
 ```
-Rule: Parse, Kind: Integer, Value: 1
-    Rule: ParseExpression, Kind: Integer, Value: 1
-        Rule: ParseAddition, Kind: Integer, Value: 1
-            Rule: ParseMultiplication, Kind: Integer, Value: 1
-                Rule: ParsePower, Kind: Integer, Value: 1
-                    Rule: ParseUnary, Kind: Integer, Value: 1
-                        Rule: ParsePrimary, Kind: Integer, Value: 1
+> 1+2
+Rule: Parse, Value: 1
+    Rule: ParseExpression, Value: 1
+        Rule: ParseAddition, Value: 1
+            Rule: ParseMultiplication, Value: 1
+                Rule: ParsePower, Value: 1
+                    Rule: ParseUnary, Value: 1
+                        Rule: ParsePrimary, Value: 1
                         Result: 1
                     Result: 1
                 Result: 1
             Result: 1
-            Rule: ParseMultiplication, Kind: Integer, Value: 2
-                Rule: ParsePower, Kind: Integer, Value: 2
-                    Rule: ParseUnary, Kind: Integer, Value: 2
-                        Rule: ParsePrimary, Kind: Integer, Value: 2
+            Rule: ParseMultiplication, Value: 2
+                Rule: ParsePower, Value: 2
+                    Rule: ParseUnary, Value: 2
+                        Rule: ParsePrimary, Value: 2
                         Result: 2
                     Result: 2
                 Result: 2
@@ -102,18 +105,19 @@ ParsePower makes a self-recursive call. It's this self-recursion that makes the 
 right associative.
 
 ```
-Rule: Parse, Kind: Integer, Value: 2
-    Rule: ParseExpression, Kind: Integer, Value: 2
-        Rule: ParseAddition, Kind: Integer, Value: 2
-            Rule: ParseMultiplication, Kind: Integer, Value: 2
-                Rule: ParsePower, Kind: Integer, Value: 2
-                    Rule: ParseUnary, Kind: Integer, Value: 2
-                        Rule: ParsePrimary, Kind: Integer, Value: 2
+> 2^3
+Rule: Parse, Value: 2
+    Rule: ParseExpression, Value: 2
+        Rule: ParseAddition, Value: 2
+            Rule: ParseMultiplication, Value: 2
+                Rule: ParsePower, Value: 2
+                    Rule: ParseUnary, Value: 2
+                        Rule: ParsePrimary, Value: 2
                         Result: 2
                     Result: 2
-                    Rule: ParsePower, Kind: Integer, Value: 3
-                        Rule: ParseUnary, Kind: Integer, Value: 3
-                            Rule: ParsePrimary, Kind: Integer, Value: 3
+                    Rule: ParsePower, Value: 3
+                        Rule: ParseUnary, Value: 3
+                            Rule: ParsePrimary, Value: 3
                             Result: 3
                         Result: 3
                     Result: 3
@@ -132,27 +136,28 @@ So this organization of rules in increasing order of presedence causes the parts
 with operators of higher predence to be evaluated first.
 
 ```
-Rule: Parse, Kind: Integer, Value: 1
-    Rule: ParseExpression, Kind: Integer, Value: 1
-        Rule: ParseAddition, Kind: Integer, Value: 1
-            Rule: ParseMultiplication, Kind: Integer, Value: 1
-                Rule: ParsePower, Kind: Integer, Value: 1
-                    Rule: ParseUnary, Kind: Integer, Value: 1
-                        Rule: ParsePrimary, Kind: Integer, Value: 1
+> 1+2*3
+Rule: Parse, Value: 1
+    Rule: ParseExpression, Value: 1
+        Rule: ParseAddition, Value: 1
+            Rule: ParseMultiplication, Value: 1
+                Rule: ParsePower, Value: 1
+                    Rule: ParseUnary, Value: 1
+                        Rule: ParsePrimary, Value: 1
                         Result: 1
                     Result: 1
                 Result: 1
             Result: 1
-            Rule: ParseMultiplication, Kind: Integer, Value: 2
-                Rule: ParsePower, Kind: Integer, Value: 2
-                    Rule: ParseUnary, Kind: Integer, Value: 2
-                        Rule: ParsePrimary, Kind: Integer, Value: 2
+            Rule: ParseMultiplication, Value: 2
+                Rule: ParsePower, Value: 2
+                    Rule: ParseUnary, Value: 2
+                        Rule: ParsePrimary, Value: 2
                         Result: 2
                     Result: 2
                 Result: 2
-                Rule: ParsePower, Kind: Integer, Value: 3
-                    Rule: ParseUnary, Kind: Integer, Value: 3
-                        Rule: ParsePrimary, Kind: Integer, Value: 3
+                Rule: ParsePower, Value: 3
+                    Rule: ParseUnary, Value: 3
+                        Rule: ParsePrimary, Value: 3
                         Result: 3
                     Result: 3
                 Result: 3
