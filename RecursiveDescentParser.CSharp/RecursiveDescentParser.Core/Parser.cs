@@ -7,17 +7,17 @@ namespace RecursiveDescentParser.Core
     {
         int _indentation;
 
-        public void Enter(string rule, Token token)
+        public void Enter(string method, Token token)
         {
-            Console.WriteLine($"{new string(' ', _indentation)}Rule: {rule}, Value: {token.Value}");
+            Console.WriteLine($"{new string(' ', _indentation)}Enter: {method}, Value: {token.Value}");
             Console.Out.Flush();
             _indentation += 4;
         }
 
         public void Exit(double value) 
-        { 
+        {
             _indentation -= 4;
-            Console.WriteLine($"{new string(' ', _indentation)}Result: {value}");
+            Console.WriteLine($"{new string(' ', _indentation)}Exit: Value: {value}");
             Console.Out.Flush();
         }
     }
