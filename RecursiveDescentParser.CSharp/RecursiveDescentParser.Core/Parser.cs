@@ -3,14 +3,30 @@ using System.Globalization;
 
 namespace RecursiveDescentParser.Core
 {
+    public class Tracer
+    {
+        int _indentation;
+
+        public void Enter(string rule, Token token)
+        {
+            Console.WriteLine($"{new string(' ', _indentation)}Rule: {rule}, Kind: {token.Kind}, Value: {token.Value}");
+            Console.Out.Flush();
+            _indentation += 2;
+        }
+
+        public void Exit() => _indentation -= 2;
+    }
+
     public class Parser
     {
         Lexer _lexer;
+        Tracer _tracer;
         Token _currentToken;
 
-        public Parser(Lexer lexer)
+        public Parser(Lexer lexer, Tracer tracer)
         {
             _lexer = lexer;
+            _tracer = tracer;
 
             // Initialize parser state.
             NextToken();
@@ -18,17 +34,27 @@ namespace RecursiveDescentParser.Core
 
         public double Parse()
         {
+            _tracer.Enter(nameof(Parse), _currentToken);
             var value = ParseExpression();
             ExpectToken(TokenKind.Eof);
+            _tracer.Exit();
             return value;
         }
 
         // Expression = Addition
-        private double ParseExpression() => ParseAddition();
+        private double ParseExpression()
+        {
+            _tracer.Enter(nameof(ParseExpression), _currentToken);
+            var value = ParseAddition();
+            _tracer.Exit();
+            return value;
+        }
 
         // Addition = Multiplication | { "+" Multiplication } | { "-" Multiplication }
         private double ParseAddition()
         {
+            _tracer.Enter(nameof(ParseAddition), _currentToken);
+
             // We handle left recursive rules by turning them into iterations.
             // The first call to ParseMultiplication() evaluates the left-hand
             // side of the addition and if the token following it is a Plus, we
@@ -86,12 +112,16 @@ namespace RecursiveDescentParser.Core
                     value -= ParseMultiplication();
                 }
             }
+
+            _tracer.Exit();
             return value;
         }
 
         // Multiplication = Power | { "*" Power } | { "/" Power }
         private double ParseMultiplication()
         {
+            _tracer.Enter(nameof(ParseMultiplication), _currentToken);
+
             var value = ParsePower();
             while (IsToken(TokenKind.Multiplication) || IsToken(TokenKind.Division))
             {
@@ -106,12 +136,15 @@ namespace RecursiveDescentParser.Core
                     value /= ParsePower();
                 }
             }
+
+            _tracer.Exit();
             return value;
         }
 
         // Power = Unary | { "^" Power }
         private double ParsePower()
         {
+            _tracer.Enter(nameof(ParsePower), _currentToken);
             var value = ParseUnary();
 
             // Compared to ParseAddition() and ParseMultiplication(), as there's
@@ -151,19 +184,18 @@ namespace RecursiveDescentParser.Core
                 // evaluate the part of the expression in a right associative
                 // manner.
                 var power = ParsePower();
-                var base_ = value;
-                value = 1;
-                for (var i = 0; i < power; i++)
-                {
-                    value *= base_;
-                }
+                value = Math.Pow(value, power);
             }
+
+            _tracer.Exit();
             return value;
         }        
 
         // Unary = '-' Unary | Primary
         private double ParseUnary()
         {
+            _tracer.Enter(nameof(ParseUnary), _currentToken);
+
             if (MatchToken(TokenKind.Minus))
             {
                 // Like with ParsePower(), because ParseUnary() implements a
@@ -172,11 +204,13 @@ namespace RecursiveDescentParser.Core
                 // we only wanted to allow a single sign, we could change
                 // ParseUnary() below to ParsePrimary().
                 var value = ParseUnary();
+                _tracer.Exit();
                 return -value;
             } 
             else
             {
                 var value = ParsePrimary();
+                _tracer.Exit();
                 return value;
             } 
         }
@@ -184,6 +218,8 @@ namespace RecursiveDescentParser.Core
         // Primary = Integer | Float | "(" Expression ")"
         private double ParsePrimary()
         {
+            _tracer.Enter(nameof(ParsePrimary), _currentToken);
+
             if (IsToken(TokenKind.Integer))
             {
                 var integer = int.Parse(_currentToken.Value);
@@ -198,12 +234,14 @@ namespace RecursiveDescentParser.Core
                 // would become 3.14000010490417 when printed with ToString().
                 var float_ = double.Parse(_currentToken.Value, CultureInfo.InvariantCulture);
                 NextToken();
+                _tracer.Exit();
                 return float_;               
             }
             else if (MatchToken(TokenKind.LParen))
             {
                 var value = ParseExpression();
                 ExpectToken(TokenKind.RParen);
+                _tracer.Exit();
                 return value;
             }
 

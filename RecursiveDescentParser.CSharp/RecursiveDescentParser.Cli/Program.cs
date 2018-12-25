@@ -1,5 +1,4 @@
-﻿using System;
-using RecursiveDescentParser.Core;
+﻿using RecursiveDescentParser.Core;
 using static System.Console;
 
 namespace RecursiveDescentParser.Cli
@@ -12,9 +11,9 @@ namespace RecursiveDescentParser.Cli
             while (true)
             {
                 Write("> ");
-                var input = Console.ReadLine();
+                var input = ReadLine();
                 var lexer = new Lexer(input);
-                var parser = new Parser(lexer);
+                var parser = new Parser(lexer, new Tracer());
                 var result = parser.Parse();
                 WriteLine(result);
             }
