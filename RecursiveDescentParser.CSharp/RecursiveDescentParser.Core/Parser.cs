@@ -11,10 +11,15 @@ namespace RecursiveDescentParser.Core
         {
             Console.WriteLine($"{new string(' ', _indentation)}Rule: {rule}, Kind: {token.Kind}, Value: {token.Value}");
             Console.Out.Flush();
-            _indentation += 2;
+            _indentation += 4;
         }
 
-        public void Exit() => _indentation -= 2;
+        public void Exit(double value) 
+        { 
+            _indentation -= 4;
+            Console.WriteLine($"{new string(' ', _indentation)}Result: {value}");
+            Console.Out.Flush();
+        }
     }
 
     public class Parser
@@ -37,7 +42,7 @@ namespace RecursiveDescentParser.Core
             _tracer.Enter(nameof(Parse), _currentToken);
             var value = ParseExpression();
             ExpectToken(TokenKind.Eof);
-            _tracer.Exit();
+            _tracer.Exit(value);
             return value;
         }
 
@@ -46,7 +51,7 @@ namespace RecursiveDescentParser.Core
         {
             _tracer.Enter(nameof(ParseExpression), _currentToken);
             var value = ParseAddition();
-            _tracer.Exit();
+            _tracer.Exit(value);
             return value;
         }
 
@@ -113,7 +118,7 @@ namespace RecursiveDescentParser.Core
                 }
             }
 
-            _tracer.Exit();
+            _tracer.Exit(value);
             return value;
         }
 
@@ -137,7 +142,7 @@ namespace RecursiveDescentParser.Core
                 }
             }
 
-            _tracer.Exit();
+            _tracer.Exit(value);
             return value;
         }
 
@@ -187,7 +192,7 @@ namespace RecursiveDescentParser.Core
                 value = Math.Pow(value, power);
             }
 
-            _tracer.Exit();
+            _tracer.Exit(value);
             return value;
         }        
 
@@ -204,13 +209,13 @@ namespace RecursiveDescentParser.Core
                 // we only wanted to allow a single sign, we could change
                 // ParseUnary() below to ParsePrimary().
                 var value = ParseUnary();
-                _tracer.Exit();
+                _tracer.Exit(value);
                 return -value;
             } 
             else
             {
                 var value = ParsePrimary();
-                _tracer.Exit();
+                _tracer.Exit(value);
                 return value;
             } 
         }
@@ -224,6 +229,7 @@ namespace RecursiveDescentParser.Core
             {
                 var integer = int.Parse(_currentToken.Value);
                 NextToken();
+                _tracer.Exit(integer);
                 return integer;
             }
             else if (IsToken(TokenKind.Float))
@@ -234,14 +240,14 @@ namespace RecursiveDescentParser.Core
                 // would become 3.14000010490417 when printed with ToString().
                 var float_ = double.Parse(_currentToken.Value, CultureInfo.InvariantCulture);
                 NextToken();
-                _tracer.Exit();
+                _tracer.Exit(float_);
                 return float_;               
             }
             else if (MatchToken(TokenKind.LParen))
             {
                 var value = ParseExpression();
                 ExpectToken(TokenKind.RParen);
-                _tracer.Exit();
+                _tracer.Exit(value);
                 return value;
             }
 
