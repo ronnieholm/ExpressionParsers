@@ -83,6 +83,10 @@ namespace RecursiveDescentParser.Core
             // look up the operators with that precedence in the table and match
             // on in the loop. Then we'd have implemented an explicit precedence
             // climbing parser.
+            //
+            // By the time ParseMultiplication returns, we've already consumed
+            // any higher precedence stuff in the token stream such as
+            // multiplication, power, or parenthesis.
             var value = ParseMultiplication();
 
             // Alternative: suppose the lexer had many token kinds for which to
@@ -181,8 +185,8 @@ namespace RecursiveDescentParser.Core
                 // but since it isn't followed by ^ the if part is skipped and c
                 // is returned to the caller. Execution picks up at the callsite
                 // of second recursion where the value of b^c is calculated and
-                // returned. Execution picks up at the callsite of the first
-                // recursion where the value of  a^(b^c) is calculated and
+                // returned. Then execution picks up at the callsite of the
+                // first recursion where the value of  a^(b^c) is calculated and
                 // returned.
                 //
                 // And thus through self-recursion, we've made ParsePower
