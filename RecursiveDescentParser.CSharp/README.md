@@ -8,161 +8,166 @@
 
 # Examples
 
-These examples shows the Parse methods call each other, following the layer of grammar, starting
-with the lowest and ending with the highest presedence operator.
+These examples show Parse methods calling into each other. The calls follow the
+grammar, starting with the lowest and ending with the highest precedence
+operator.
 
-For single integer, we see how every parsing rule is activated in their order of presedence:
+For a single integer, we see how every parsing rule is activated in order of
+precedence:
 
 ```
 > 1
-Rule: Parse, Value: 1
-    Rule: ParseExpression, Value: 1
-        Rule: ParseAddition, Value: 1
-            Rule: ParseMultiplication, Value: 1
-                Rule: ParsePower, Value: 1
-                    Rule: ParseUnary, Value: 1
-                        Rule: ParsePrimary, Value: 1
-                        Result: 1
-                    Result: 1
-                Result: 1
-            Result: 1
-        Result: 1
-    Result: 1
-Result: 1
-
+Enter: Parse, Value: 1
+    Enter: ParseExpression, Value: 1
+        Enter: ParseAddition, Value: 1
+            Enter: ParseMultiplication, Value: 1
+                Enter: ParsePower, Value: 1
+                    Enter: ParseUnary, Value: 1
+                        Enter: ParsePrimary, Value: 1
+                        Exit: Value: 1
+                    Exit: Value: 1
+                Exit: Value: 1
+            Exit: Value: 1
+        Exit: Value: 1
+    Exit: Value: 1
+Exit: Value: 1
+1
 ```
 
-And the same single integer parenthesized. We first go down the rules until ParsePrimary is reached.
-The rule that matched is the one with the parenthesis causing a call back to ParseExpression for
-the whole way through the rules once again. This is what causes parenthesized expression to be
-parsed first, setting aside any presedence rule of what surrounds the parenthesis:
+Here's the same integer parenthesized. As before, we travel the rules until
+ParsePrimary is reached. Parenthesis trumps the precedence of all other
+operators and causes and recursively calls back into ParseExpression for the
+parenthesized expression to be evaluated before anything else:
 
 ```
 > (1)
-Rule: Parse, Value: 
-    Rule: ParseExpression, Value: 
-        Rule: ParseAddition, Value: 
-            Rule: ParseMultiplication, Value: 
-                Rule: ParsePower, Value: 
-                    Rule: ParseUnary, Value: 
-                        Rule: ParsePrimary, Value: 
-                            Rule: ParseExpression, Value: 1
-                                Rule: ParseAddition, Value: 1
-                                    Rule: ParseMultiplication, Value: 1
-                                        Rule: ParsePower, Value: 1
-                                            Rule: ParseUnary, Value: 1
-                                                Rule: ParsePrimary, Value: 1
-                                                Result: 1
-                                            Result: 1
-                                        Result: 1
-                                    Result: 1
-                                Result: 1
-                            Result: 1
-                        Result: 1
-                    Result: 1
-                Result: 1
-            Result: 1
-        Result: 1
-    Result: 1
-Result: 1
-
+Enter: Parse, Value: 
+    Enter: ParseExpression, Value: 
+        Enter: ParseAddition, Value: 
+            Enter: ParseMultiplication, Value: 
+                Enter: ParsePower, Value: 
+                    Enter: ParseUnary, Value: 
+                        Enter: ParsePrimary, Value: 
+                            Enter: ParseExpression, Value: 1
+                                Enter: ParseAddition, Value: 1
+                                    Enter: ParseMultiplication, Value: 1
+                                        Enter: ParsePower, Value: 1
+                                            Enter: ParseUnary, Value: 1
+                                                Enter: ParsePrimary, Value: 1
+                                                Exit: Value: 1
+                                            Exit: Value: 1
+                                        Exit: Value: 1
+                                    Exit: Value: 1
+                                Exit: Value: 1
+                            Exit: Value: 1
+                        Exit: Value: 1
+                    Exit: Value: 1
+                Exit: Value: 1
+            Exit: Value: 1
+        Exit: Value: 1
+    Exit: Value: 1
+Exit: Value: 1
+1
 ```
 
-For addition, we see repeated calls to the rule beyond addition, namely Multiplication.
-That's because inside ParseAddition, for each operand, we call ParseMultiplication in a loop.
+For addition, we see repeated calls to the rule beyond addition, namely
+multiplication. That's because inside ParseAddition, for each "+ operand"
+encountered, we call ParseMultiplication in a loop.
 
 ```
 > 1+2
-Rule: Parse, Value: 1
-    Rule: ParseExpression, Value: 1
-        Rule: ParseAddition, Value: 1
-            Rule: ParseMultiplication, Value: 1
-                Rule: ParsePower, Value: 1
-                    Rule: ParseUnary, Value: 1
-                        Rule: ParsePrimary, Value: 1
-                        Result: 1
-                    Result: 1
-                Result: 1
-            Result: 1
-            Rule: ParseMultiplication, Value: 2
-                Rule: ParsePower, Value: 2
-                    Rule: ParseUnary, Value: 2
-                        Rule: ParsePrimary, Value: 2
-                        Result: 2
-                    Result: 2
-                Result: 2
-            Result: 2
-        Result: 3
-    Result: 3
-Result: 3
+Enter: Parse, Value: 1
+    Enter: ParseExpression, Value: 1
+        Enter: ParseAddition, Value: 1
+            Enter: ParseMultiplication, Value: 1
+                Enter: ParsePower, Value: 1
+                    Enter: ParseUnary, Value: 1
+                        Enter: ParsePrimary, Value: 1
+                        Exit: Value: 1
+                    Exit: Value: 1
+                Exit: Value: 1
+            Exit: Value: 1
+            Enter: ParseMultiplication, Value: 2
+                Enter: ParsePower, Value: 2
+                    Enter: ParseUnary, Value: 2
+                        Enter: ParsePrimary, Value: 2
+                        Exit: Value: 2
+                    Exit: Value: 2
+                Exit: Value: 2
+            Exit: Value: 2
+        Exit: Value: 3
+    Exit: Value: 3
+Exit: Value: 3
+3
 ```
 
-Addition is a left associative operator. As an example of a right associate operator
-let's see what the parsing an expression involved Power results in. Just looking at
-the indentation, we see a subtle difference. The initial path down to ParsePrimary
-is the same, but we don't return three levels back to continue with a loop. Instead,
-ParsePower makes a self-recursive call. It's this self-recursion that makes the rule
-right associative.
+Addition is a left associative operator. As an example of a right associative
+operator, let's see what parsing a power expression results in. Looking at the
+indentation, we see a subtle difference. The initial path down to ParsePrimary
+is the same, but we don't return three levels up, continuing with the next loop
+iteration. Instead, ParsePower makes a self-recursive call. It's this
+self-recursion that makes the rule right associative.
 
 ```
 > 2^3
-Rule: Parse, Value: 2
-    Rule: ParseExpression, Value: 2
-        Rule: ParseAddition, Value: 2
-            Rule: ParseMultiplication, Value: 2
-                Rule: ParsePower, Value: 2
-                    Rule: ParseUnary, Value: 2
-                        Rule: ParsePrimary, Value: 2
-                        Result: 2
-                    Result: 2
-                    Rule: ParsePower, Value: 3
-                        Rule: ParseUnary, Value: 3
-                            Rule: ParsePrimary, Value: 3
-                            Result: 3
-                        Result: 3
-                    Result: 3
-                Result: 8
-            Result: 8
-        Result: 8
-    Result: 8
-Result: 8
+Enter: Parse, Value: 2
+    Enter: ParseExpression, Value: 2
+        Enter: ParseAddition, Value: 2
+            Enter: ParseMultiplication, Value: 2
+                Enter: ParsePower, Value: 2
+                    Enter: ParseUnary, Value: 2
+                        Enter: ParsePrimary, Value: 2
+                        Exit: Value: 2
+                    Exit: Value: 2
+                    Enter: ParsePower, Value: 3
+                        Enter: ParseUnary, Value: 3
+                            Enter: ParsePrimary, Value: 3
+                            Exit: Value: 3
+                        Exit: Value: 3
+                    Exit: Value: 3
+                Exit: Value: 8
+            Exit: Value: 8
+        Exit: Value: 8
+    Exit: Value: 8
+Exit: Value: 8
+8
 ```
 
-For addition followed by multiplication, we see the same repeated calls to the rule beyond addition,
-namely Multiplication. By because multiplication has higher presedence than addition, the multiplication
-must be carried out first. We see this happen with the second call to ParseMultiplication. Inside
-ParseMultiplication, if the operand is followed by '*', we'll match the next use, Power, in a loop.
-So this organization of rules in increasing order of presedence causes the parts of the expressions
-with operators of higher predence to be evaluated first.
+For addition followed by multiplication, we see the same repeated calls to the
+rule beyond addition, namely multiplication. But because multiplication has
+higher precedence than addition, multiplication must be carried out first. This
+happen with the second call to ParseMultiplication. Inside ParseMultiplication,
+if the operand is followed by '*', it calls ParsePower in a loop:
 
 ```
 > 1+2*3
-Rule: Parse, Value: 1
-    Rule: ParseExpression, Value: 1
-        Rule: ParseAddition, Value: 1
-            Rule: ParseMultiplication, Value: 1
-                Rule: ParsePower, Value: 1
-                    Rule: ParseUnary, Value: 1
-                        Rule: ParsePrimary, Value: 1
-                        Result: 1
-                    Result: 1
-                Result: 1
-            Result: 1
-            Rule: ParseMultiplication, Value: 2
-                Rule: ParsePower, Value: 2
-                    Rule: ParseUnary, Value: 2
-                        Rule: ParsePrimary, Value: 2
-                        Result: 2
-                    Result: 2
-                Result: 2
-                Rule: ParsePower, Value: 3
-                    Rule: ParseUnary, Value: 3
-                        Rule: ParsePrimary, Value: 3
-                        Result: 3
-                    Result: 3
-                Result: 3
-            Result: 6
-        Result: 7
-    Result: 7
-Result: 7
+Enter: Parse, Value: 1
+    Enter: ParseExpression, Value: 1
+        Enter: ParseAddition, Value: 1
+            Enter: ParseMultiplication, Value: 1
+                Enter: ParsePower, Value: 1
+                    Enter: ParseUnary, Value: 1
+                        Enter: ParsePrimary, Value: 1
+                        Exit: Value: 1
+                    Exit: Value: 1
+                Exit: Value: 1
+            Exit: Value: 1
+            Enter: ParseMultiplication, Value: 2
+                Enter: ParsePower, Value: 2
+                    Enter: ParseUnary, Value: 2
+                        Enter: ParsePrimary, Value: 2
+                        Exit: Value: 2
+                    Exit: Value: 2
+                Exit: Value: 2
+                Enter: ParsePower, Value: 3
+                    Enter: ParseUnary, Value: 3
+                        Enter: ParsePrimary, Value: 3
+                        Exit: Value: 3
+                    Exit: Value: 3
+                Exit: Value: 3
+            Exit: Value: 6
+        Exit: Value: 7
+    Exit: Value: 7
+Exit: Value: 7
+7
 ```
