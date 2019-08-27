@@ -185,45 +185,32 @@ namespace RecursiveDescentParser.Core
         }
 
         // Integer = Digit | Integer Digit
-        private int LexInteger()
+        private string LexInteger()
         {
-            var integer = CurrentCharacter - '0';
-            _currentPos++;
+            // Don't parse by returning a Int32 or Int64. Instead return the integer
+            // as a string and leave it to the parser to intepret it. It may be the
+            // integer is too large for the Int32 or Int64.
+            var start = _currentPos++;
             while (char.IsDigit(CurrentCharacter))
             {
-                integer *= 10;
-                integer += CurrentCharacter - '0';
                 _currentPos++;
             }
-            return integer;
+            return _input.Substring(start, _currentPos - start);
         }
 
         // Float = Integer "." Integer
-        private float LexFloat()
+        private string LexFloat()
         {
             var start = _currentPos;
-            while (char.IsDigit(CurrentCharacter))
-            {
-                _currentPos++;
-            }
+            LexInteger();
             _currentPos++;
             if (!char.IsDigit(CurrentCharacter))
             {
                 ReportSyntaxError("digit");
             }
-            while (char.IsDigit(CurrentCharacter))
-            {
-                _currentPos++;
-            }
+            LexInteger();
             var end = _currentPos;
-
-            // The reason we have two while loops, one for the character and one
-            // for the mantissa, instead of calling LexInteger is that the
-            // mantissa could be a zero-prefixed number. In that case the
-            // integer returned wouldn't be correct. Instead we locate the start
-            // and end position of the float.
-            var floatString = _input.Substring(start, end - start);
-            return float.Parse(floatString);
+            return _input.Substring(start, end - start);
         }
 
         private void ReportSyntaxError(string expected)
