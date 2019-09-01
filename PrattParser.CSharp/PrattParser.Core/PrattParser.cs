@@ -5,7 +5,7 @@ namespace PrattParser.Core
 {    
     public interface IPrefixParser
     {
-	    IExpression Parse(Parser parser, Token token);
+        IExpression Parse(Parser parser, Token token);
     }
 
     public interface IInfixParser
@@ -41,10 +41,10 @@ namespace PrattParser.Core
             return expression;
         }
 
-        // The crux of the Pratt parser. Compare to paper.
+        // The crux of the Pratt parser. Compare to Pratt paper.
         public IExpression ParseExpression(int precedence)
         {
-	        var token = Consume();
+            var token = Consume();
             var ok = _prefixParsers.TryGetValue(token.Kind, out IPrefixParser prefixParser);
             if (!ok)
                 throw new Exception($"Couldn't parse '{token.Literal}'");
