@@ -15,10 +15,11 @@ namespace PrattParser.Core
         Plus,
         Minus,
         Star,
-        Slash,
+        Slash,        
         Caret,
         LParen,
-        RParen
+        RParen,
+        Bang
     }
 
     public class Token
@@ -125,6 +126,9 @@ namespace PrattParser.Core
                 case ')':
                     _currentPosition++;
                     return new Token(TokenKind.RParen, ")");
+                case '!':
+                    _currentPosition++;
+                    return new Token(TokenKind.Bang, "!");                
                 case ' ':
                 case '\n':
                 case '\r':

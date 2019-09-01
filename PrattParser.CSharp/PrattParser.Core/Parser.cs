@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 namespace PrattParser.Core
-{
+{    
     public interface IPrefixParser
     {
 	    IExpression Parse(Parser parser, Token token);
@@ -14,116 +14,6 @@ namespace PrattParser.Core
         IExpression Parse(Parser parser, IExpression left, Token token);
     }
 
-    public class PrefixOperatorParser : IPrefixParser
-    {
-        public int Precedence { get; }
-
-        public PrefixOperatorParser(int precedence)
-        {
-            Precedence = precedence;
-        }
-
-        public IExpression Parse(Parser parser, Token token)
-        {
-            var right = parser.ParseExpression(PrecedenceLevel.Lowest);
-            return new PrefixExpression
-            {
-                Token = token,
-                Operator = token.Literal, // Should probably be kind
-                Right = right
-            };
-        }
-    }
-
-    public class InfixOperatorParser : IInfixParser
-    {
-        public int Precedence { get; }
-        public bool IsRight { get; }
-
-        public InfixOperatorParser(int precedence, bool isRight)
-        {
-            Precedence = precedence;
-            IsRight = isRight;
-        }
-
-        public IExpression Parse(Parser parser, IExpression left, Token token)
-        {
-            var right = parser.ParseExpression(Precedence - (IsRight ? 1 : 0));
-            return new InfixExpression
-            {
-                Token = token,
-                Left = left,
-                Operator = token.Literal, // Should probably be Kind instead?
-                Right = right
-            };
-        }	
-    }
-
-    public class IntegerParser : IPrefixParser
-    {
-        public IExpression Parse(Parser parser, Token token)
-        {
-            var literal = new IntegerLiteral { Token = token };
-            var ok = long.TryParse(token.Literal, out long value);
-            if (!ok)
-                throw new Exception($"Couldn't parse '{token.Literal}' as System.Int64");
-
-            literal.Value = value;
-            return literal;
-        }
-    }
-
-    public class FloatParser : IPrefixParser
-    {
-        public IExpression Parse(Parser parser, Token token)
-        {
-            var literal = new FloatLiteral { Token = token };
-            var ok = double.TryParse(token.Literal, out double value);
-            if (!ok)
-                throw new Exception($"Couldn't parse '{token.Literal}' as System.Int64");
-
-            literal.Value = value;
-            return literal;        
-        }
-    }
-
-    public class GroupedParser : IPrefixParser
-    {
-        public int Precedence => throw new NotImplementedException();
-
-        public IExpression Parse(Parser parser, Token token)
-        {
-            // ConsumeToken();
-            // var expression = ParseExpression(PrecedenceLevel.Lowest);
-
-            // if (_peekToken.Kind == TokenKind.RParen)
-            // {
-            //     ConsumeToken();
-            //     return expression;
-            // }
-            // else
-            //     throw new Exception($"Expected next token to be {TokenKind.RParen}, but got {_peekToken.Kind}");
-            return null;
-        }
-    }
-    
-    // Actual numeric numbers doesn't matter, but the order and the relation
-    // to each other does. We want to be able to answer questions such as
-    // whether operator * has higher precedence than operator ==. While
-    // using an enum over a class with integer constants alliviates the need
-    // to explicitly assign a value to each member, it making debugging the
-    // Pratt parser slightly more difficult. During precedence value
-    // comparisons, the debugger will show the strings over their its
-    // implicit number.
-    public class PrecedenceLevel
-    {
-        public const int Lowest = 0;
-        public const int Sum  = 10;
-        public const int Product = 20;
-        public const int Exponent = 30;
-        public const int Prefix = 40;
-    }
-
     public class Parser
     {
         Lexer _lexer;
@@ -132,34 +22,24 @@ namespace PrattParser.Core
         Dictionary<TokenKind, IPrefixParser> _prefixParsers;
         Dictionary<TokenKind, IInfixParser> _infixParsers;
 
-        private void Register(TokenKind kind, IPrefixParser parser) => _prefixParsers.Add(kind, parser);
-        private void Register(TokenKind kind, IInfixParser parser) => _infixParsers.Add(kind, parser);
-        private void Prefix(TokenKind kind, int precedence) => Register(kind, new PrefixOperatorParser(precedence));
-        private void InfixLeft(TokenKind kind, int precedence) => Register(kind, new InfixOperatorParser(precedence, false));
-        private void InfixRight(TokenKind kind, int precedence) => Register(kind, new InfixOperatorParser(precedence, true));
-
         public Parser(Lexer lexer)
         {
             _lexer = lexer;
             _prefixParsers = new Dictionary<TokenKind, IPrefixParser>();
-
-            // Register the ones that need special parsers
-            Register(TokenKind.Integer, new IntegerParser());
-            Register(TokenKind.Float, new FloatParser());
-
-            // Register the simple operator parsers
-            Prefix(TokenKind.Minus, PrecedenceLevel.Prefix);
-            Prefix(TokenKind.LParen, PrecedenceLevel.Prefix);
-
-            _infixParsers = new Dictionary<TokenKind, IInfixParser>();            
-            InfixLeft(TokenKind.Plus, PrecedenceLevel.Sum);
-            InfixLeft(TokenKind.Minus, PrecedenceLevel.Sum);
-            InfixLeft(TokenKind.Slash, PrecedenceLevel.Product);
-            InfixLeft(TokenKind.Star, PrecedenceLevel.Product);
-            InfixRight(TokenKind.Caret, PrecedenceLevel.Exponent);
+            _infixParsers = new Dictionary<TokenKind, IInfixParser>();
         }
 
-        public IExpression Parse() => ParseExpression(PrecedenceLevel.Lowest);
+        protected void Register(TokenKind kind, IPrefixParser parser) => _prefixParsers.Add(kind, parser);
+        protected void Register(TokenKind kind, IInfixParser parser) => _infixParsers.Add(kind, parser);
+
+        public IExpression Parse()
+        {
+            var expression = ParseExpression(PrecedenceLevel.Lowest);
+            var current = LookAhead(0);
+            if (current.Kind != TokenKind.Eof)
+                throw new Exception($"Expected {TokenKind.Eof} but got {current.Literal}");
+            return expression;
+        }
 
         // The crux of the Pratt parser. Compare to paper.
         public IExpression ParseExpression(int precedence)
@@ -189,6 +69,14 @@ namespace PrattParser.Core
                 return 0;
             return parser.Precedence;
         }
+
+        public Token Consume(TokenKind kind)
+        {
+            var token = LookAhead(0);
+            if (token.Kind != kind)
+                throw new Exception($"Expected token '{kind}' but found '{token.Kind}'");
+            return Consume();
+        } 
 
         private Token Consume()
         {
