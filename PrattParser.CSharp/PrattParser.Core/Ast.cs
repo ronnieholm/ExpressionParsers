@@ -60,7 +60,7 @@ namespace PrattParser.Core
         {
             Token = token;
             Left = left;
-            Operator = @Operator;
+            Operator = @operator;
             Right = right;
         }
     }
@@ -75,7 +75,7 @@ namespace PrattParser.Core
         public PostfixExpression(Token token, TokenKind @operator, IExpression left)
         {
             Token = token;
-            Operator = @Operator;
+            Operator = @operator;
             Left = left;
         }
     }
