@@ -16,7 +16,7 @@ namespace PrattParser.Core
         Minus,
         Star,
         Slash,
-        Hat,
+        Caret,
         LParen,
         RParen
     }
@@ -118,7 +118,7 @@ namespace PrattParser.Core
                     return new Token(TokenKind.Slash, "/");            
                 case '^':
                     _currentPosition++;
-                    return new Token(TokenKind.Hat, "^");            
+                    return new Token(TokenKind.Caret, "^");            
                 case '(':
                     _currentPosition++;
                     return new Token(TokenKind.LParen, "(");                

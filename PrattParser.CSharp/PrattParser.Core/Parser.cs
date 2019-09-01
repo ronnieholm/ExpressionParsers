@@ -3,185 +3,205 @@ using System.Collections.Generic;
 
 namespace PrattParser.Core
 {
-    using PrefixParseFn = Func<IExpression>;
-    using InfixParseFn = Func<IExpression, IExpression>;
+    public interface IPrefixParser
+    {
+	    IExpression Parse(Parser parser, Token token);
+    }
+
+    public interface IInfixParser
+    {
+        int Precedence { get; }
+        IExpression Parse(Parser parser, IExpression left, Token token);
+    }
+
+    public class PrefixOperatorParser : IPrefixParser
+    {
+        public int Precedence { get; }
+
+        public PrefixOperatorParser(int precedence)
+        {
+            Precedence = precedence;
+        }
+
+        public IExpression Parse(Parser parser, Token token)
+        {
+            var right = parser.ParseExpression(PrecedenceLevel.Lowest);
+            return new PrefixExpression
+            {
+                Token = token,
+                Operator = token.Literal, // Should probably be kind
+                Right = right
+            };
+        }
+    }
+
+    public class InfixOperatorParser : IInfixParser
+    {
+        public int Precedence { get; }
+        public bool IsRight { get; }
+
+        public InfixOperatorParser(int precedence, bool isRight)
+        {
+            Precedence = precedence;
+            IsRight = isRight;
+        }
+
+        public IExpression Parse(Parser parser, IExpression left, Token token)
+        {
+            var right = parser.ParseExpression(Precedence - (IsRight ? 1 : 0));
+            return new InfixExpression
+            {
+                Token = token,
+                Left = left,
+                Operator = token.Literal, // Should probably be Kind instead?
+                Right = right
+            };
+        }	
+    }
+
+    public class IntegerParser : IPrefixParser
+    {
+        public IExpression Parse(Parser parser, Token token)
+        {
+            var literal = new IntegerLiteral { Token = token };
+            var ok = long.TryParse(token.Literal, out long value);
+            if (!ok)
+                throw new Exception($"Couldn't parse '{token.Literal}' as System.Int64");
+
+            literal.Value = value;
+            return literal;
+        }
+    }
+
+    public class FloatParser : IPrefixParser
+    {
+        public IExpression Parse(Parser parser, Token token)
+        {
+            var literal = new FloatLiteral { Token = token };
+            var ok = double.TryParse(token.Literal, out double value);
+            if (!ok)
+                throw new Exception($"Couldn't parse '{token.Literal}' as System.Int64");
+
+            literal.Value = value;
+            return literal;        
+        }
+    }
+
+    public class GroupedParser : IPrefixParser
+    {
+        public int Precedence => throw new NotImplementedException();
+
+        public IExpression Parse(Parser parser, Token token)
+        {
+            // ConsumeToken();
+            // var expression = ParseExpression(PrecedenceLevel.Lowest);
+
+            // if (_peekToken.Kind == TokenKind.RParen)
+            // {
+            //     ConsumeToken();
+            //     return expression;
+            // }
+            // else
+            //     throw new Exception($"Expected next token to be {TokenKind.RParen}, but got {_peekToken.Kind}");
+            return null;
+        }
+    }
+    
+    // Actual numeric numbers doesn't matter, but the order and the relation
+    // to each other does. We want to be able to answer questions such as
+    // whether operator * has higher precedence than operator ==. While
+    // using an enum over a class with integer constants alliviates the need
+    // to explicitly assign a value to each member, it making debugging the
+    // Pratt parser slightly more difficult. During precedence value
+    // comparisons, the debugger will show the strings over their its
+    // implicit number.
+    public class PrecedenceLevel
+    {
+        public const int Lowest = 0;
+        public const int Sum  = 10;
+        public const int Product = 20;
+        public const int Exponent = 30;
+        public const int Prefix = 40;
+    }
 
     public class Parser
     {
         Lexer _lexer;
+        List<Token> _lookAhead = new List<Token>();
 
-        // Acts like _currentPosition within lexer, but instead of pointing to a
-        // character in the input these point to the current and next tokens. We
-        // need to look at _currentToken to decide what to do next, and we need
-        // _peekToken to guide the decision in case _currentToken doesn't
-        // provide us with enough information. In effect, this implements a
-        // parser with one token lookahead.
-        Token _currentToken;
-        Token _peekToken;
+        Dictionary<TokenKind, IPrefixParser> _prefixParsers;
+        Dictionary<TokenKind, IInfixParser> _infixParsers;
 
-        // Functions based on token type called as part of Pratt parsing.
-        Dictionary<TokenKind, PrefixParseFn> _prefixParseFns;
-        Dictionary<TokenKind, InfixParseFn> _infixParseFns;
-
-        // Actual numeric numbers doesn't matter, but the order and the relation
-        // to each other does. We want to be able to answer questions such as
-        // whether operator * has higher precedence than operator ==. While
-        // using an enum over a class with integer constants alliviates the need
-        // to explicitly assign a value to each member, it making debugging the
-        // Pratt parser slightly more difficult. During precedence value
-        // comparisons, the debugger will show the strings over their its
-        // implicit number.
-        enum PrecedenceLevel
-        {
-            None = 0,
-            Lowest,
-            Sum,
-            Product,
-            Prefix
-        }
-
-        // Table of precedence associated with token. Observe how not every
-        // precedence value is present (Lowest and Prefix missing). Lowest
-        // serves as a starting precedence for the Pratt parser while Prefix
-        // isn't associated with a token but an expression as a whole. On the
-        // other hand, some operators, such as multiplication and division,
-        // share the same precedence level.
-        Dictionary<TokenKind, PrecedenceLevel> precedences = new Dictionary<TokenKind, PrecedenceLevel>
-        {
-            { TokenKind.Plus, PrecedenceLevel.Sum },
-            { TokenKind.Minus, PrecedenceLevel.Sum },
-            { TokenKind.Slash, PrecedenceLevel.Product },
-            { TokenKind.Star, PrecedenceLevel.Product },
-        };
-
-        private void RegisterPrefix(TokenKind t, PrefixParseFn fn) => _prefixParseFns.Add(t, fn);
-        private void RegisterInfix(TokenKind t, InfixParseFn fn) => _infixParseFns.Add(t, fn);
+        private void Register(TokenKind kind, IPrefixParser parser) => _prefixParsers.Add(kind, parser);
+        private void Register(TokenKind kind, IInfixParser parser) => _infixParsers.Add(kind, parser);
+        private void Prefix(TokenKind kind, int precedence) => Register(kind, new PrefixOperatorParser(precedence));
+        private void InfixLeft(TokenKind kind, int precedence) => Register(kind, new InfixOperatorParser(precedence, false));
+        private void InfixRight(TokenKind kind, int precedence) => Register(kind, new InfixOperatorParser(precedence, true));
 
         public Parser(Lexer lexer)
         {
             _lexer = lexer;
+            _prefixParsers = new Dictionary<TokenKind, IPrefixParser>();
 
-            _prefixParseFns = new Dictionary<TokenKind, PrefixParseFn>();
-            RegisterPrefix(TokenKind.Integer, ParseIntegerLiteral);
-            RegisterPrefix(TokenKind.Float, ParseFloatLiteral);
-            RegisterPrefix(TokenKind.Minus, ParsePrefixExpression);
-            RegisterPrefix(TokenKind.LParen, ParseGroupedExpression);
+            // Register the ones that need special parsers
+            Register(TokenKind.Integer, new IntegerParser());
+            Register(TokenKind.Float, new FloatParser());
 
-            _infixParseFns = new Dictionary<TokenKind, InfixParseFn>();
-            RegisterInfix(TokenKind.Plus, ParseInfixExpression);
-            RegisterInfix(TokenKind.Minus, ParseInfixExpression);
-            RegisterInfix(TokenKind.Slash, ParseInfixExpression);
-            RegisterInfix(TokenKind.Star, ParseInfixExpression);
+            // Register the simple operator parsers
+            Prefix(TokenKind.Minus, PrecedenceLevel.Prefix);
+            Prefix(TokenKind.LParen, PrecedenceLevel.Prefix);
 
-            // Read two tokens to set both _currentToken and _peekToken.
-            NextToken();
-            NextToken();
+            _infixParsers = new Dictionary<TokenKind, IInfixParser>();            
+            InfixLeft(TokenKind.Plus, PrecedenceLevel.Sum);
+            InfixLeft(TokenKind.Minus, PrecedenceLevel.Sum);
+            InfixLeft(TokenKind.Slash, PrecedenceLevel.Product);
+            InfixLeft(TokenKind.Star, PrecedenceLevel.Product);
+            InfixRight(TokenKind.Caret, PrecedenceLevel.Exponent);
         }
 
         public IExpression Parse() => ParseExpression(PrecedenceLevel.Lowest);
 
         // The crux of the Pratt parser. Compare to paper.
-        private IExpression ParseExpression(PrecedenceLevel precedence)
+        public IExpression ParseExpression(int precedence)
         {
-            PrefixParseFn prefixFn;
-            var ok = _prefixParseFns.TryGetValue(_currentToken.Kind, out prefixFn);
+	        var token = Consume();
+            var ok = _prefixParsers.TryGetValue(token.Kind, out IPrefixParser prefixParser);
             if (!ok)
-                throw new Exception($"No prefix parse function for {_currentToken.Kind} found");
+                throw new Exception($"Couldn't parse '{token.Literal}'");
+            var left = prefixParser.Parse(this, token);
 
-            var leftExpression = prefixFn();
-
-            // precedence is what the original Pratt paper refers to as
-            // right-binding power and the return of peekPrecedenceLevel
-            // what's referred to as left-binding power. For as long as
-            // left-binding power > right-binding power, another level gets
-            // added to the Abstract Syntax Tree. Another levels corresponds to
-            // operations which need to be carried out first when the expression
-            // is evaluated.
-            var ok1 = precedences.TryGetValue(_peekToken.Kind, out PrecedenceLevel level);
-
-            // Returning Lowest when precedence cannot be found for a token is
-            // what enables us to parse for instance grouped expression. The
-            // RParen doesn't have an associated precedence, so when Lowest is
-            // returned it causes the parser to finish evaluating a
-            // subexpression as a whole.
-            var peekPrecedenceLevel = ok1 ? level : PrecedenceLevel.Lowest;
-
-            while (_peekToken.Kind != TokenKind.Eof && precedence < peekPrecedenceLevel)
+            while (precedence < GetPrecedence())
             {
-                InfixParseFn infixFn;
-                ok = _infixParseFns.TryGetValue(_peekToken.Kind, out infixFn);
+                token = Consume();
+                ok = _infixParsers.TryGetValue(token.Kind, out IInfixParser infixParser);
                 if (!ok)
-                    return leftExpression;
-
-                NextToken();
-                leftExpression = infixFn(leftExpression);
+                    throw new Exception($"Couldn't parse '{token.Literal}'");
+                left = infixParser.Parse(this, left, token);
             }
 
-            return leftExpression;
+            return left;
         }
 
-        private IExpression ParseIntegerLiteral()
+        private int GetPrecedence()
         {
-            var literal = new IntegerLiteral { Token = _currentToken };
-
-            long value;
-            var ok = long.TryParse(_currentToken.Literal, out value);
+            var ok = _infixParsers.TryGetValue(LookAhead(0).Kind, out IInfixParser parser);
             if (!ok)
-                throw new Exception($"Could not parse '{_currentToken.Literal}' as System.Int64");
-
-            literal.Value = value;
-            return literal;
+                return 0;
+            return parser.Precedence;
         }
 
-        private IExpression ParseFloatLiteral()
+        private Token Consume()
         {
-            var literal = new FloatLiteral { Token = _currentToken };
-
-            double value;
-            var ok = double.TryParse(_currentToken.Literal, out value);
-            if (!ok)
-                throw new Exception($"Could not parse '{_currentToken.Literal}' as System.Double");
-
-            literal.Value = value;
-            return literal;
+            var token = LookAhead(0);        
+            _lookAhead.RemoveAt(0);
+            return token;
         }
 
-        private IExpression ParseGroupedExpression()
+        private Token LookAhead(int distance)
         {
-            NextToken();
-            var expression = ParseExpression(PrecedenceLevel.Lowest);
-
-            if (_peekToken.Kind == TokenKind.RParen)
-            {
-                NextToken();
-                return expression;
-            }
-            else
-                throw new Exception($"Expected next token to be {TokenKind.RParen}, got {_peekToken.Kind} instead.");
-        }
-
-        private IExpression ParsePrefixExpression()
-        {
-            var expression = new PrefixExpression { Token = _currentToken, Operator = _currentToken.Literal };
-            NextToken();
-            expression.Right = ParseExpression(PrecedenceLevel.Prefix);
-            return expression;
-        }
-
-        private IExpression ParseInfixExpression(IExpression left)
-        {
-            var expression = new InfixExpression { Token = _currentToken, Operator = _currentToken.Literal, Left = left };            
-            NextToken();
-            var ok = precedences.TryGetValue(_currentToken.Kind, out PrecedenceLevel precedenceLevel);
-            var level = ok ? precedenceLevel : PrecedenceLevel.Lowest;
-            expression.Right = ParseExpression(level);
-            return expression;
-        }
-
-        private void NextToken()
-        {
-            _currentToken = _peekToken;
-            _peekToken = _lexer.NextToken();
+            while (distance >= _lookAhead.Count)
+                _lookAhead.Add(_lexer.NextToken());
+            return _lookAhead[distance]; 
         }
     }
 }

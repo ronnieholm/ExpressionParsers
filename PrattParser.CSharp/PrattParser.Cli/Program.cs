@@ -11,7 +11,7 @@ namespace PrattParser.Cli
             while (true)
             {
                 Write("> ");
-                var input = ReadLine();
+                var input = "1+2*3"; //ReadLine();
                 var lexer = new Lexer(input);
                 var parser = new Parser(lexer);
                 var result = parser.Parse();

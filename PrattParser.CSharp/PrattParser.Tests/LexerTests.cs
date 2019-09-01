@@ -17,7 +17,7 @@ namespace PrattParser.Tests
             AssertToken(l.NextToken(), TokenKind.Minus);
             AssertToken(l.NextToken(), TokenKind.Star);
             AssertToken(l.NextToken(), TokenKind.Slash);
-            AssertToken(l.NextToken(), TokenKind.Hat);
+            AssertToken(l.NextToken(), TokenKind.Caret);
             AssertToken(l.NextToken(), TokenKind.Float, "3.14");
             AssertToken(l.NextToken(), TokenKind.LParen);
             AssertToken(l.NextToken(), TokenKind.RParen);            
