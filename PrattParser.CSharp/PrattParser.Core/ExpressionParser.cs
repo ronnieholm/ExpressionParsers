@@ -11,7 +11,7 @@ namespace PrattParser.Core
             Precedence = precedence;
         }
 
-        public IExpression Parse(Parser parser, Token token)
+        public IExpression Parse(PrattParser parser, Token token)
         {
             var right = parser.ParseExpression(PrecedenceLevel.Lowest);
             return new PrefixExpression(token, token.Kind, right);
@@ -29,7 +29,7 @@ namespace PrattParser.Core
             Associativity = associativity;
         }
 
-        public IExpression Parse(Parser parser, IExpression left, Token token)
+        public IExpression Parse(PrattParser parser, IExpression left, Token token)
         {
             var right = parser.ParseExpression(Precedence - (Associativity == Associativity.Right ? 1 : 0));
             return new InfixExpression(token, left, token.Kind, right);
@@ -45,7 +45,7 @@ namespace PrattParser.Core
             Precedence = precedence;
         }
 
-        public IExpression Parse(Parser parser, IExpression left, Token token)
+        public IExpression Parse(PrattParser parser, IExpression left, Token token)
         {
             return new PostfixExpression(token, token.Kind, left);
         }
@@ -53,7 +53,7 @@ namespace PrattParser.Core
 
     public class IntegerParser : IPrefixParser
     {
-        public IExpression Parse(Parser parser, Token token)
+        public IExpression Parse(PrattParser parser, Token token)
         {
             var ok = long.TryParse(token.Literal, out long value);
             if (!ok)
@@ -64,7 +64,7 @@ namespace PrattParser.Core
 
     public class FloatParser : IPrefixParser
     {
-        public IExpression Parse(Parser parser, Token token)
+        public IExpression Parse(PrattParser parser, Token token)
         {
             var ok = double.TryParse(token.Literal, out double value);
             if (!ok)
@@ -75,7 +75,7 @@ namespace PrattParser.Core
 
     public class GroupParser : IPrefixParser
     {
-        public IExpression Parse(Parser parser, Token token)
+        public IExpression Parse(PrattParser parser, Token token)
         {
             var expression = parser.ParseExpression(PrecedenceLevel.Lowest);
             parser.Consume(TokenKind.RParen);
@@ -108,7 +108,7 @@ namespace PrattParser.Core
         Right
     }
 
-    public class ExpressionParser : Parser
+    public class ExpressionParser : PrattParser
     {
         public ExpressionParser(Lexer lexer) : base(lexer)
         {

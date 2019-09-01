@@ -5,16 +5,16 @@ namespace PrattParser.Core
 {    
     public interface IPrefixParser
     {
-	    IExpression Parse(Parser parser, Token token);
+        IExpression Parse(PrattParser parser, Token token);
     }
 
     public interface IInfixParser
     {
         int Precedence { get; }
-        IExpression Parse(Parser parser, IExpression left, Token token);
+        IExpression Parse(PrattParser parser, IExpression left, Token token);
     }
 
-    public class Parser
+    public class PrattParser
     {
         Lexer _lexer;
         List<Token> _lookAhead = new List<Token>();
@@ -22,7 +22,7 @@ namespace PrattParser.Core
         Dictionary<TokenKind, IPrefixParser> _prefixParsers;
         Dictionary<TokenKind, IInfixParser> _infixParsers;
 
-        public Parser(Lexer lexer)
+        public PrattParser(Lexer lexer)
         {
             _lexer = lexer;
             _prefixParsers = new Dictionary<TokenKind, IPrefixParser>();
@@ -41,10 +41,10 @@ namespace PrattParser.Core
             return expression;
         }
 
-        // The crux of the Pratt parser. Compare to paper.
+        // The crux of the Pratt parser. Compare to Pratt paper.
         public IExpression ParseExpression(int precedence)
         {
-	        var token = Consume();
+            var token = Consume();
             var ok = _prefixParsers.TryGetValue(token.Kind, out IPrefixParser prefixParser);
             if (!ok)
                 throw new Exception($"Couldn't parse '{token.Literal}'");
