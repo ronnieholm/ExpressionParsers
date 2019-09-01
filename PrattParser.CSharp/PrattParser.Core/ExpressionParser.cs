@@ -21,17 +21,17 @@ namespace PrattParser.Core
     public class InfixOperatorParser : IInfixParser
     {
         public int Precedence { get; }
-        public bool IsRight { get; }
+        public Associativity Associativity { get; }
 
-        public InfixOperatorParser(int precedence, bool isRight)
+        public InfixOperatorParser(int precedence, Associativity associativity)
         {
             Precedence = precedence;
-            IsRight = isRight;
+            Associativity = associativity;
         }
 
         public IExpression Parse(Parser parser, IExpression left, Token token)
         {
-            var right = parser.ParseExpression(Precedence - (IsRight ? 1 : 0));
+            var right = parser.ParseExpression(Precedence - (Associativity == Associativity.Right ? 1 : 0));
             return new InfixExpression(token, left, token.Kind, right);
         }	
     }
@@ -101,6 +101,13 @@ namespace PrattParser.Core
         public const int Postfix = 5;
     }
 
+    public enum Associativity
+    {
+        None,
+        Left,
+        Right
+    }
+
     public class ExpressionParser : Parser
     {
         public ExpressionParser(Lexer lexer) : base(lexer)
@@ -123,8 +130,8 @@ namespace PrattParser.Core
         }        
 
         private void Prefix(TokenKind kind, int precedence) => Register(kind, new PrefixOperatorParser(precedence));
-        private void InfixLeft(TokenKind kind, int precedence) => Register(kind, new InfixOperatorParser(precedence, false));
-        private void InfixRight(TokenKind kind, int precedence) => Register(kind, new InfixOperatorParser(precedence, true));
+        private void InfixLeft(TokenKind kind, int precedence) => Register(kind, new InfixOperatorParser(precedence, Associativity.Left));
+        private void InfixRight(TokenKind kind, int precedence) => Register(kind, new InfixOperatorParser(precedence, Associativity.Right));
         private void Postfix(TokenKind kind, int precedence) => Register(kind, new PostfixOperatorParser(precedence));
     }
 }
