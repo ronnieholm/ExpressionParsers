@@ -37,7 +37,7 @@ namespace PrattParser.Core
             var expression = ParseExpression(PrecedenceLevel.Lowest);
             var current = LookAhead(0);
             if (current.Kind != TokenKind.Eof)
-                throw new Exception($"Expected {TokenKind.Eof} but got {current.Literal}");
+                throw new Exception($"Expected {TokenKind.Eof} but got {current.Kind} of '{current.Literal}'");
             return expression;
         }
 

@@ -1,7 +1,5 @@
 ﻿using System;
 
-// TODO: Back port lexer to Recursive descent solution.
-
 namespace PrattParser.Core
 {
     public enum TokenKind

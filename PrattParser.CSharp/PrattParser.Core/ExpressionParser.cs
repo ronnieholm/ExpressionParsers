@@ -14,12 +14,7 @@ namespace PrattParser.Core
         public IExpression Parse(Parser parser, Token token)
         {
             var right = parser.ParseExpression(PrecedenceLevel.Lowest);
-            return new PrefixExpression
-            {
-                Token = token,
-                Operator = token.Kind,
-                Right = right
-            };
+            return new PrefixExpression(token, token.Kind, right);
         }
     }
 
@@ -37,13 +32,7 @@ namespace PrattParser.Core
         public IExpression Parse(Parser parser, IExpression left, Token token)
         {
             var right = parser.ParseExpression(Precedence - (IsRight ? 1 : 0));
-            return new InfixExpression
-            {
-                Token = token,
-                Left = left,
-                Operator = token.Kind,
-                Right = right
-            };
+            return new InfixExpression(token, left, token.Kind, right);
         }	
     }
 
@@ -58,12 +47,7 @@ namespace PrattParser.Core
 
         public IExpression Parse(Parser parser, IExpression left, Token token)
         {
-            return new PostfixExpression
-            {
-                Token = token,
-                Operator = token.Kind,
-                Left = left
-            };
+            return new PostfixExpression(token, token.Kind, left);
         }
     }
 
@@ -71,13 +55,10 @@ namespace PrattParser.Core
     {
         public IExpression Parse(Parser parser, Token token)
         {
-            var literal = new IntegerLiteral { Token = token };
             var ok = long.TryParse(token.Literal, out long value);
             if (!ok)
                 throw new Exception($"Couldn't parse '{token.Literal}' as System.Int64");
-
-            literal.Value = value;
-            return literal;
+            return new IntegerLiteral(token, value);
         }
     }
 
@@ -85,13 +66,10 @@ namespace PrattParser.Core
     {
         public IExpression Parse(Parser parser, Token token)
         {
-            var literal = new FloatLiteral { Token = token };
             var ok = double.TryParse(token.Literal, out double value);
             if (!ok)
                 throw new Exception($"Couldn't parse '{token.Literal}' as System.Int64");
-
-            literal.Value = value;
-            return literal;        
+            return new FloatLiteral(token, value);
         }
     }
 
