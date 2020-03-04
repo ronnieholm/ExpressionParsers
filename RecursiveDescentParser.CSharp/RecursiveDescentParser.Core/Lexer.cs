@@ -72,8 +72,8 @@ namespace RecursiveDescentParser.Core
         //
         // Improvement: extend ReportSyntaxError in lexer and parser with visual
         // indicators of error position in source text.
-        public TokenKind Kind { get; private set; }
-        public string Value { get; private set; }
+        public TokenKind Kind { get; }
+        public string Value { get; }
 
         public Token(TokenKind type, string value = default)
         {
@@ -84,7 +84,7 @@ namespace RecursiveDescentParser.Core
 
     public class Lexer
     {
-        string _input;
+        readonly string _input;
         int _currentPos;
 
         private char CurrentCharacter => _currentPos < _input.Length ? _input[_currentPos] : '\0';
@@ -99,7 +99,7 @@ namespace RecursiveDescentParser.Core
 
         public Token NextToken()
         {
-            // Alternative: we couldn've started off with 
+            // Alternative: we could've started off with 
             //
             // while (char.IsWhiteSpace(GetCurrentCharacter())) 
             // {

@@ -16,11 +16,11 @@ namespace PrattParser.Core
 
     public class PrattParser
     {
-        Lexer _lexer;
-        List<Token> _lookAhead = new List<Token>();
+        readonly Lexer _lexer;
+        readonly List<Token> _lookAhead = new List<Token>();
 
-        Dictionary<TokenKind, IPrefixParser> _prefixParsers;
-        Dictionary<TokenKind, IInfixParser> _infixParsers;
+        readonly Dictionary<TokenKind, IPrefixParser> _prefixParsers;
+        readonly Dictionary<TokenKind, IInfixParser> _infixParsers;
 
         public PrattParser(Lexer lexer)
         {

@@ -36,7 +36,7 @@ namespace PrattParser.Core
 
     public class Lexer
     {
-        string _input;
+        readonly string _input;
         int _currentPosition;
 
         private char CurrentCharacter => _currentPosition < _input.Length ? _input[_currentPosition] : '\0';

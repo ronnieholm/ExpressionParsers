@@ -24,8 +24,8 @@ namespace RecursiveDescentParser.Core
 
     public class Parser
     {
-        Lexer _lexer;
-        Tracer _tracer;
+        readonly Lexer _lexer;
+        readonly Tracer _tracer;
         Token _currentToken;
 
         public Parser(Lexer lexer, Tracer tracer)
@@ -72,14 +72,14 @@ namespace RecursiveDescentParser.Core
             // This parser deals correctly with associativity, as in a - b - c,
             // because ParseAddition first consumes a. Then the while loop will
             // consume consume b, keeping track of the accumulated value. From
-            // accummulated value, it'll subtract c, effectively computing (a -
+            // accumulated value, it'll subtract c, effectively computing (a -
             // b) - c.
             //
             // Alternative: we could extend the hardcoded operators with a
             // table-driven approach for an extensible grammar. Then instead of
             // multiple parse methods deferring to each other, we'd have one
             // ParseExpression method recursing into itself, passing in the
-            // current precedence level. Based on presedence level, we could
+            // current precedence level. Based on precedence level, we could
             // look up the operators with that precedence in the table and match
             // on in the loop. Then we'd have implemented an explicit precedence
             // climbing parser.
@@ -273,10 +273,7 @@ namespace RecursiveDescentParser.Core
                 NextToken();
                 return true;
             }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
         private void ExpectToken(TokenKind kind)
