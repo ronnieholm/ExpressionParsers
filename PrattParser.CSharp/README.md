@@ -4,7 +4,7 @@
 
     $ dotnet build
     $ dotnet test PrattParser.Tests 
-    $ dotnet run -p PrattParser.Cli
+    $ dotnet run --project PrattParser.Cli
 
 ## Algorithm
 
@@ -108,7 +108,6 @@ and parsing here:
     > 1 * 2 + 3
               x
 
-
 Back in previous expr(0) we once again test the conditin bp(peek()) > rbp, i.e,
 -100 > 0 which is now false, causing return of left, the entire abstract syntax
 tree, to the caller of expr(0).
@@ -148,5 +147,13 @@ when applied to itself.
 
 ## References
 
+- https://www.youtube.com/watch?v=MnctEW1oL-E. Around 1h08m48s explains Pratt
+  parsing as an alternative to the AST rewriting done in JAI. It may not
+  actually be Pratt parsing but an operator precedence parser
+  (https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing).
+  Also goes into another method that does AST rewriting before returning each
+  node up the stack.
+
 // http://journal.stuffwithstuff.com/2011/03/19/pratt-parsers-expression-parsing-made-easy/
 // https://dev.to/jrop/pratt-parsing
+// https://eli.thegreenplace.net/2010/01/02/top-down-operator-precedence-parsing/

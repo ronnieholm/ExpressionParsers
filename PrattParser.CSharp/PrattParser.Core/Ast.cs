@@ -1,3 +1,9 @@
+// Extensions:
+// - Add an Eval(Interpreter i) method on each AST node to make it more object
+//   oriented.
+// - Add a Dump method to each node as in
+//   https://www.youtube.com/watch?v=byNwCHc_IIM, around 1h19m
+
 namespace PrattParser.Core
 {
     public interface IExpression
