@@ -1,88 +1,39 @@
 // Extensions:
-// - Add an Eval(Interpreter i) method on each AST node to make it more object
+// - Add an Eval(Interpreter i) method to each AST node to make it more object
 //   oriented.
 // - Add a Dump method to each node as in
 //   https://www.youtube.com/watch?v=byNwCHc_IIM, around 1h19m
 
-namespace PrattParser.Core
+namespace PrattParser.Core;
+
+public interface IExpression
 {
-    public interface IExpression
-    {
-        // We don't override Object.ToString() because we want to make the
-        // String call explicit.
-        string String { get; }
-    }
+    // We don't override Object.ToString() because we want to keep the
+    // String call explicit.
+    string String { get; }
+}
 
-    public class IntegerLiteral : IExpression
-    {
-        public Token Token { get; }
-        public long Value { get; }
-        public string String { get => $"{Token.Literal}"; }
+public record IntegerLiteral(Token Token, long Value) : IExpression
+{
+    public string String { get => $"{Token.Literal}"; }
+}
 
-        public IntegerLiteral(Token token, long value)
-        {
-            Token = token;
-            Value = value;
-        }
-    }
+public record FloatLiteral(Token Token, double Value) : IExpression
+{
+    public string String { get => $"{Token.Literal}"; }
+}
 
-    public class FloatLiteral : IExpression
-    {
-        public Token Token { get; }
-        public double Value { get; }
-        public string String { get => $"{Token.Literal}"; }
+public record PrefixExpression(Token Token, TokenKind Operator, IExpression Right) : IExpression
+{
+    public string String { get => $"({Token.Literal}{Right.String})"; }
+}
 
-        public FloatLiteral(Token token, double value)
-        {
-            Token = token;
-            Value = value;
-        }
-    }
+public record InfixExpression(Token Token, IExpression Left, TokenKind Operator, IExpression Right) : IExpression
+{
+    public string String { get => $"({Left.String} {Token.Literal} {Right.String})"; }
+}
 
-    public class PrefixExpression : IExpression
-    {
-        public Token Token { get; }
-        public TokenKind Operator { get; }
-        public IExpression Right;
-        public string String { get => $"({Token.Literal}{Right.String})"; }
-
-        public PrefixExpression(Token token, TokenKind @operator, IExpression right)
-        {
-            Token = token;
-            Operator = @operator;
-            Right = right;
-        }
-    }
-
-    public class InfixExpression : IExpression
-    {
-        public Token Token { get; }
-        public IExpression Left;
-        public TokenKind Operator { get; }
-        public IExpression Right;
-        public string String { get => $"({Left.String} {Token.Literal} {Right.String})"; }
-
-        public InfixExpression(Token token, IExpression left, TokenKind @operator, IExpression right)
-        {
-            Token = token;
-            Left = left;
-            Operator = @operator;
-            Right = right;
-        }
-    }
-
-    public class PostfixExpression : IExpression
-    {
-        public Token Token { get; }
-        public TokenKind Operator { get; }
-        public IExpression Left;
-        public string String { get => $"({Left.String}{Token.Literal})"; }
-
-        public PostfixExpression(Token token, TokenKind @operator, IExpression left)
-        {
-            Token = token;
-            Operator = @operator;
-            Left = left;
-        }
-    }
+public record PostfixExpression(Token Token, TokenKind Operator, IExpression Left) : IExpression
+{
+    public string String { get => $"({Left.String}{Token.Literal})"; }
 }
