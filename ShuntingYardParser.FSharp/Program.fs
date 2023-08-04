@@ -207,7 +207,7 @@ test <@ parseExpression "-(1+2*3/4^5)" =
             reduce expression
           if operator stack runs out without finding left paren then mismatched parens
           pop left paren from stack
-      when no more tokens to readand
+      when no more tokens to read and
         while still tokens on operator stack
           if operator token on top of stack is paren then mismatched parens
           reduce expression
