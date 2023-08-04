@@ -16,13 +16,13 @@ public interface IInfixParser
 
 public class PrattParser
 {
-    readonly Lexer _lexer;
-    readonly List<Token> _lookAhead = new List<Token>();
+    private readonly Lexer _lexer;
+    private readonly List<Token> _lookAhead = new();
 
-    readonly Dictionary<TokenKind, IPrefixParser> _prefixParsers;
-    readonly Dictionary<TokenKind, IInfixParser> _infixParsers;
+    private readonly Dictionary<TokenKind, IPrefixParser> _prefixParsers;
+    private readonly Dictionary<TokenKind, IInfixParser> _infixParsers;
 
-    public PrattParser(Lexer lexer)
+    protected PrattParser(Lexer lexer)
     {
         _lexer = lexer;
         _prefixParsers = new Dictionary<TokenKind, IPrefixParser>();
@@ -45,7 +45,7 @@ public class PrattParser
     public IExpression ParseExpression(int precedence)
     {
         var token = Consume();
-        var ok = _prefixParsers.TryGetValue(token.Kind, out IPrefixParser? prefixParser);
+        var ok = _prefixParsers.TryGetValue(token.Kind, out var prefixParser);
         if (!ok)
             throw new Exception($"Couldn't parse '{token.Literal}'");
         var left = prefixParser!.Parse(this, token);
@@ -53,7 +53,7 @@ public class PrattParser
         while (precedence < GetPrecedence())
         {
             token = Consume();
-            ok = _infixParsers.TryGetValue(token.Kind, out IInfixParser? infixParser);
+            ok = _infixParsers.TryGetValue(token.Kind, out var infixParser);
             if (!ok)
                 throw new Exception($"Couldn't parse '{token.Literal}'");
             left = infixParser!.Parse(this, left, token);
@@ -64,10 +64,8 @@ public class PrattParser
 
     private int GetPrecedence()
     {
-        var ok = _infixParsers.TryGetValue(LookAhead(0).Kind, out IInfixParser? parser);
-        if (!ok)
-            return 0;
-        return parser!.Precedence;
+        var ok = _infixParsers.TryGetValue(LookAhead(0).Kind, out var parser);
+        return !ok ? 0 : parser!.Precedence;
     }
 
     public Token Consume(TokenKind kind)

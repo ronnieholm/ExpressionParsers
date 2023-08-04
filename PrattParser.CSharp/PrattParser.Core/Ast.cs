@@ -15,25 +15,25 @@ public interface IExpression
 
 public record IntegerLiteral(Token Token, long Value) : IExpression
 {
-    public string String { get => $"{Token.Literal}"; }
+    public string String => $"{Token.Literal}";
 }
 
 public record FloatLiteral(Token Token, double Value) : IExpression
 {
-    public string String { get => $"{Token.Literal}"; }
+    public string String => $"{Token.Literal}";
 }
 
 public record PrefixExpression(Token Token, TokenKind Operator, IExpression Right) : IExpression
 {
-    public string String { get => $"({Token.Literal}{Right.String})"; }
+    public string String => $"({Token.Literal}{Right.String})";
 }
 
 public record InfixExpression(Token Token, IExpression Left, TokenKind Operator, IExpression Right) : IExpression
 {
-    public string String { get => $"({Left.String} {Token.Literal} {Right.String})"; }
+    public string String => $"({Left.String} {Token.Literal} {Right.String})";
 }
 
 public record PostfixExpression(Token Token, TokenKind Operator, IExpression Left) : IExpression
 {
-    public string String { get => $"({Left.String}{Token.Literal})"; }
+    public string String => $"({Left.String}{Token.Literal})";
 }

@@ -3,9 +3,9 @@ using static System.Console;
 
 namespace PrattParser.Cli;
 
-class Program
+static class Program
 {
-    static void Main(string[] args)
+    static void Main()
     {         
         WriteLine("Enter expression. Press Ctrl-C to exit.");
         while (true)

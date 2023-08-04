@@ -86,12 +86,10 @@ public class Lexer
                     var floatString = LexFloat();
                     return new Token(TokenKind.Float, floatString);                       
                 }
-                else
-                {
-                    _currentPosition = bookmark;
-                    var integerString = LexInteger();
-                    return new Token(TokenKind.Integer, integerString);    
-                }
+
+                _currentPosition = bookmark;
+                var integerString = LexInteger();
+                return new Token(TokenKind.Integer, integerString);
             case '+':
                 _currentPosition++;
                 return new Token(TokenKind.Plus, "+");
@@ -132,13 +130,11 @@ public class Lexer
     private string LexInteger()
     {
         // Don't parse by returning an Int32 or Int64. Instead return the
-        // integer as a string and leave it to the parser to intepret it. It may
+        // integer as a string and leave it to the parser to interpret it. It may
         // be the integer is too large for the Int32 or Int64.
         var start = _currentPosition++;
         while (char.IsDigit(CurrentCharacter))
-        {
             _currentPosition++;
-        }
         return _input.Substring(start, _currentPosition - start);
     }
 
@@ -149,9 +145,7 @@ public class Lexer
         LexInteger();
         _currentPosition++;
         if (!char.IsDigit(CurrentCharacter))
-        {
             ReportSyntaxError("digit");
-        }
         LexInteger();
         var end = _currentPosition;
         return _input.Substring(start, end - start);

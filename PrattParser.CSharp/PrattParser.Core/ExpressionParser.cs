@@ -80,7 +80,7 @@ public class GroupParser : IPrefixParser
 // The actual numbers don't matter; order and relation to each other does. We
 // want to to answer questions such as whether operator * has higher precedence
 // than operator ==. While using an enum over a class with integer constants
-// alliviates the need to explicitly assign a value to each member, it makes
+// alleviates the need to explicitly assign a value to each member, it makes
 // debugging the Pratt parser more difficult as during precedence comparisons,
 // the debugger will show strings over precedence.
 public class PrecedenceLevel

@@ -1,5 +1,8 @@
 # Recursive Descent Parser for mathematical expressions
 
+Based on Vaughan Pratt's [Top Down Operator Precedence](https://github.com/tdop/tdop.github.io)
+paper.
+
 ## Build and run
 
     $ dotnet build
