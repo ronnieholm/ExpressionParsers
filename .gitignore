@@ -153,5 +153,5 @@ $RECYCLE.BIN/
 
 # Mac crap
 .DS_Store
-/.vs
-/RecursiveDescentParser.CSharp/.vs
+.vs
+.idea
