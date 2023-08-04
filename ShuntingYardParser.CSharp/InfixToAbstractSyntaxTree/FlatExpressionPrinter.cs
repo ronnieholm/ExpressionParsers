@@ -1,45 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace ShuntingYardParser.CSharp.InfixToAbstractSyntaxTree;
 
-namespace ShuntingYardParser.CSharp.InfixToAbstractSyntaxTree {
-    public class FlatExpressionPrinter {
-        public string Print(Expression e) {
-            if (e is UnaryMinus) {
-                UnaryMinus x = e as UnaryMinus;
-                return string.Format("-({0})", Print(x.Operand));
-            }
-            else if (e is BinaryPlus) {
-                BinaryPlus x = e as BinaryPlus;
-                return string.Format("+({0}, {1})", Print(x.LeftOperand), Print(x.RightOperand));
-            }
-            else if (e is BinaryMinus) {
-                BinaryMinus x = e as BinaryMinus;
-                return string.Format("-({0}, {1})", Print(x.LeftOperand), Print(x.RightOperand));
-            }
-            else if (e is BinaryMul) {
-                BinaryMul x = e as BinaryMul;
-                return string.Format("*({0}, {1})", Print(x.LeftOperand), Print(x.RightOperand));
-            }
-            else if (e is BinaryDiv) {
-                BinaryDiv x = e as BinaryDiv;
-                return string.Format("/({0}, {1})", Print(x.LeftOperand), Print(x.RightOperand));
-
-            }
-            else if (e is BinaryExp) {
-                BinaryExp x = e as BinaryExp;
-                return string.Format("^({0}, {1})", Print(x.LeftOperand), Print(x.RightOperand));
-
-            }
-            else if (e is Literal) {
-                Literal x = e as Literal;
-                return x.Value.ToString();
-            }
-            else {
-                throw new ArgumentException("Unsupported type: " + e);
-            }
-        }
+public static class FlatExpressionPrinter
+{
+    public static string Print(Expression e)
+    {
+        return e switch
+        {
+            UnaryMinus minus => $"-({Print(minus.Operand)})",
+            BinaryPlus plus => $"+({Print(plus.LeftOperand)}, {Print(plus.RightOperand)})",
+            BinaryMinus binaryMinus => $"-({Print(binaryMinus.LeftOperand)}, {Print(binaryMinus.RightOperand)})",
+            BinaryMul mul => $"*({Print(mul.LeftOperand)}, {Print(mul.RightOperand)})",
+            BinaryDiv div => $"/({Print(div.LeftOperand)}, {Print(div.RightOperand)})",
+            BinaryExp exp => $"^({Print(exp.LeftOperand)}, {Print(exp.RightOperand)})",
+            Literal literal => literal.Value.ToString(),
+            _ => throw new ArgumentException("Unsupported type: " + e)
+        };
     }
 }

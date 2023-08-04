@@ -1,55 +1,44 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using ShuntingYardParser.CSharp.Lexer;
+﻿using ShuntingYardParser.CSharp.Lexer;
 using ShuntingYardParser.CSharp.Parser;
 
-namespace ShuntingYardParser.CSharp.InfixEvaluator {
-    public class InfixEvaluatorParser : ShuntingYardParser<int> {
-        public InfixEvaluatorParser(ExpressionLexer lexer) : base(lexer) { }
+namespace ShuntingYardParser.CSharp.InfixEvaluator;
 
-        protected override void PushOperand(Token t) {
-            Operands.Push(Int32.Parse(t.Lexeme));
+public class InfixEvaluatorParser : ShuntingYardParser<int>
+{
+    public InfixEvaluatorParser(ExpressionLexer lexer) : base(lexer)
+    {
+    }
+
+    protected override void PushOperand(Token t)
+    {
+        Operands.Push(int.Parse(t.Lexeme));
+    }
+
+    protected override void ReduceExpression()
+    {
+        Token op = Operators.Pop();
+
+        if (op.Type == TokenType.UnaryMinus)
+        {
+            int operand = Operands.Pop();
+            Operands.Push(-operand);
         }
+        else
+        {
+            int right = Operands.Pop();
+            int left = Operands.Pop();
 
-        protected override void ReduceExpression() {
-            Token op = Operators.Pop();
+            int result = op.Type switch
+            {
+                TokenType.BinaryPlus => left + right,
+                TokenType.BinaryMinus => left - right,
+                TokenType.BinaryMul => left * right,
+                TokenType.BinaryDiv => left / right,
+                TokenType.BinaryExp => (int)Math.Pow(left, right),
+                _ => throw new ArgumentException($"Unsupported operator: {op.Lexeme}")
+            };
 
-            if (op.Type == TokenType.UnaryMinus) {
-                int operand = Operands.Pop();
-                Operands.Push(-operand);
-            }
-            else {
-                int right = Operands.Pop();
-                int left = Operands.Pop();
-
-                int result = 0;
-                switch (op.Type) {
-                    case TokenType.BinaryPlus:
-                        result = left + right;
-                        break;
-                    case TokenType.BinaryMinus:
-                        result = left - right;
-                        break;
-                    case TokenType.BinaryMul:
-                        result = left * right;
-                        break;
-                    case TokenType.BinaryDiv:
-                        result = left / right;
-                        break;
-                    case TokenType.BinaryExp:
-                        result = (int)Math.Pow((double)left, (double)right);
-                        break;
-                    default:
-                        throw new ArgumentException(
-                            string.Format("Unsupported operator: {0}", op.Lexeme));
-                }
-
-                Operands.Push(result);
-            }
+            Operands.Push(result);
         }
     }
 }
