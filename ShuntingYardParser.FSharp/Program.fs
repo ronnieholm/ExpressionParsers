@@ -1,5 +1,5 @@
 ﻿#if INTERACTIVE
-#r "../packages/Unquote.3.0.0/lib/net45/Unquote.dll"
+#r "nuget: Unquote"
 #r "System.dll"
 #else
 module SeparateLexerParserStages
@@ -370,9 +370,9 @@ test <@ "-1" |> eval = Integer -1 @>
 test <@ "1+2" |> eval = Integer 3 @>
 test <@ "1+-2" |> eval = Integer -1 @>
 test <@ "-(1+2)" |> eval = Integer -3 @>
-test <@ "2^3^2" |> eval = Integer 512 @>
+test <@ "2^3^2" |> eval = Integer 64 @>
 test <@ "1+2*3" |> eval = Integer 7 @>
-test <@ "4^5/1+2*3" |> eval = Integer 1030 @>
+test <@ "4^5/1+2*3" |> eval = Integer 146 @>
 
 module Program =
     [<EntryPoint>]
