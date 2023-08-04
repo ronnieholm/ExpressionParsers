@@ -5,7 +5,7 @@ namespace RecursiveDescentParser.Core
 {
     public class Tracer
     {
-        int _indentation;
+        private int _indentation;
 
         public void Enter(string method, Token token)
         {
@@ -24,9 +24,9 @@ namespace RecursiveDescentParser.Core
 
     public class Parser
     {
-        readonly Lexer _lexer;
-        readonly Tracer _tracer;
-        Token _currentToken;
+        private readonly Lexer _lexer;
+        private readonly Tracer _tracer;
+        private Token _currentToken;
 
         public Parser(Lexer lexer, Tracer tracer)
         {
@@ -113,13 +113,9 @@ namespace RecursiveDescentParser.Core
                 var op = _currentToken.Kind;
                 NextToken();
                 if (op == TokenKind.Plus)
-                {
                     value += ParseMultiplication();
-                }
                 else if (op == TokenKind.Minus)
-                {
                     value -= ParseMultiplication();
-                }
             }
 
             _tracer.Exit(value);
@@ -137,13 +133,9 @@ namespace RecursiveDescentParser.Core
                 var op = _currentToken.Kind;
                 NextToken();
                 if (op == TokenKind.Multiplication)
-                {
                     value *= ParsePower();
-                }
                 else if (op == TokenKind.Division)
-                {
                     value /= ParsePower();
-                }
             }
 
             _tracer.Exit(value);
@@ -236,7 +228,7 @@ namespace RecursiveDescentParser.Core
                 _tracer.Exit(integer);
                 return integer;
             }
-            else if (IsToken(TokenKind.Float))
+            if (IsToken(TokenKind.Float))
             {
                 // We semantically call it a float but use the C#'s double type
                 // to represent it. The higher precision of double over float
@@ -247,7 +239,7 @@ namespace RecursiveDescentParser.Core
                 _tracer.Exit(float_);
                 return float_;               
             }
-            else if (MatchToken(TokenKind.LParen))
+            if (MatchToken(TokenKind.LParen))
             {
                 var value = ParseExpression();
                 ExpectToken(TokenKind.RParen);
@@ -279,13 +271,9 @@ namespace RecursiveDescentParser.Core
         private void ExpectToken(TokenKind kind)
         {
             if (IsToken(kind))
-            {
                 NextToken();
-            }
             else
-            {
                 ReportSyntaxError(kind);
-            }
         }
 
         private void ReportSyntaxError(TokenKind expected) => ReportSyntaxError(new[] {expected});
