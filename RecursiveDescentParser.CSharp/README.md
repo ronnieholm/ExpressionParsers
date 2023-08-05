@@ -6,7 +6,30 @@
     $ dotnet test RecursiveDescentParser.Tests 
     $ dotnet run -p RecursiveDescentParser.Cli
 
-# Examples
+## BNF grammar
+
+The parser implements the following grammar:
+
+    Expression = Addition
+    Addition = Multiplication | { "+" Multiplication } | { "-" Multiplication }
+    Multiplication = Power | { "*" Power } | { "/" Power }
+    Power = Unary | { "^" Power }
+    Unary = '-' Unary | Primary
+    Primary = Integer | Float | "(" Expression ")"
+    Integer = Digit | Integer Digit
+    Float = Integer "." Integer
+
+Grammar is ambigious with respect to associativy, but not precedence as
+productions are specified from lowest to highest precedence. For a naive
+recursive descent parser these extra productions clutters the AST with
+intermediate nodes, leading to higher memory usage, and required more function
+calls to climb the precedence tree.
+
+A more sophisticated recursive descent parser could apply term rewriting to
+clean up the AST and/or disambiguate the grammar or replace the recursive
+descent parser with a Pratt parser.
+
+## Examples
 
 These examples show Parse methods calling into each other. The calls follow the
 grammar, starting with the lowest and ending with the highest precedence

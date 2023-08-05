@@ -1,7 +1,7 @@
 # TODO
 
 - Add AST node
-- Add AST tree-walking evaluators implementing visitor pattern: Value, prefix, postfix, parens
+- Add AST tree-walking evaluators implementing visitor pattern: Value, prefix, postfix, parens, graphics files
 - Add line and column to token
 - Create large file of expressions and profile evaluating it
 - Add mathematical simplification steps

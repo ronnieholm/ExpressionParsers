@@ -100,9 +100,7 @@ public class Lexer
         // Alternative: we could've started off with 
         //
         // while (char.IsWhiteSpace(GetCurrentCharacter())) 
-        // {
         //     _currentPos++;
-        // }
         //
         // to consume leading whitespace. Instead we handle whitespace in the
         // switch statement using a goto statement. This provides a uniform
@@ -110,7 +108,7 @@ public class Lexer
         // lexer toward whitespace. For each character, the while expression is
         // evaluated which, depending on the language being lexed, may be
         // inefficient.
-        retry:
+retry:
         switch (CurrentCharacter)
         {
             case '\0':
@@ -193,7 +191,7 @@ public class Lexer
         {
             _currentPos++;
         }
-        return _input.Substring(start, _currentPos - start);
+        return _input[start.._currentPos];
     }
 
     // Float = Integer "." Integer
@@ -208,7 +206,7 @@ public class Lexer
         }
         LexInteger();
         var end = _currentPos;
-        return _input.Substring(start, end - start);
+        return _input[start..end];
     }
 
     private void ReportSyntaxError(string expected)
