@@ -40,6 +40,6 @@ public class LexerTests
     private void AssertToken(Token token, TokenKind type, string value)
     {
         Assert.Equal(type, token.Kind);
-        Assert.Equal(value, token.Value);
+        Assert.Equal(value, token.Literal);
     }
 }

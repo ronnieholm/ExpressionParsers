@@ -9,15 +9,15 @@ public class Tracer
 
     public void Enter(string method, Token token)
     {
-        Console.WriteLine($"{new string(' ', _indentation)}Enter: {method}, Value: {token.Value}");
+        Console.WriteLine($"{new string(' ', _indentation)}Enter: {method}, Literal: {token.Literal}");
         Console.Out.Flush();
         _indentation += 4;
     }
 
-    public void Exit(double value) 
+    public void Exit(IExpression value) 
     {
         _indentation -= 4;
-        Console.WriteLine($"{new string(' ', _indentation)}Exit: Value: {value}");
+        Console.WriteLine($"{new string(' ', _indentation)}Exit: Type: {value.GetType().Name}");
         Console.Out.Flush();
     }
 }
@@ -37,7 +37,7 @@ public class Parser
         NextToken();
     }
 
-    public double Parse()
+    public IExpression Parse()
     {
         _tracer.Enter(nameof(Parse), _currentToken);
         var value = ParseExpression();
@@ -47,7 +47,7 @@ public class Parser
     }
 
     // Expression = Addition
-    private double ParseExpression()
+    private IExpression ParseExpression()
     {
         _tracer.Enter(nameof(ParseExpression), _currentToken);
         var value = ParseAddition();
@@ -56,7 +56,7 @@ public class Parser
     }
 
     // Addition = Multiplication | { "+" Multiplication } | { "-" Multiplication }
-    private double ParseAddition()
+    private IExpression ParseAddition()
     {
         _tracer.Enter(nameof(ParseAddition), _currentToken);
 
@@ -86,7 +86,7 @@ public class Parser
         // By the time ParseMultiplication returns, we've already consumed any
         // higher precedence stuff in the token stream such as multiplication,
         // power, or parenthesis.
-        var value = ParseMultiplication();
+        var left = ParseMultiplication();
 
         // Alternative: suppose the lexer had many token kinds for which to
         // check. Then adding each kind to the while condition would be
@@ -111,38 +111,40 @@ public class Parser
         {
             var op = _currentToken.Kind;
             NextToken();
-            if (op == TokenKind.Plus)
-                value += ParseMultiplication();
-            else if (op == TokenKind.Minus)
-                value -= ParseMultiplication();
+            if (op is TokenKind.Plus or TokenKind.Minus)
+            {
+                var right = ParseMultiplication();
+                left = new InfixExpression(_currentToken, left, op, right);
+            }
         }
 
-        _tracer.Exit(value);
-        return value;
+        _tracer.Exit(left);
+        return left;
     }
 
     // Multiplication = Power | { "*" Power } | { "/" Power }
-    private double ParseMultiplication()
+    private IExpression ParseMultiplication()
     {
         _tracer.Enter(nameof(ParseMultiplication), _currentToken);
 
-        var value = ParsePower();
+        var left = ParsePower();
         while (IsToken(TokenKind.Multiplication) || IsToken(TokenKind.Division))
         {
             var op = _currentToken.Kind;
             NextToken();
-            if (op == TokenKind.Multiplication)
-                value *= ParsePower();
-            else if (op == TokenKind.Division)
-                value /= ParsePower();
+            if (op is TokenKind.Multiplication or TokenKind.Division)
+            {
+                var right = ParsePower();
+                left = new InfixExpression(_currentToken, left, op, right);
+            }
         }
 
-        _tracer.Exit(value);
-        return value;
+        _tracer.Exit(left);
+        return left;
     }
 
     // Power = Unary | { "^" Power }
-    private double ParsePower()
+    private IExpression ParsePower()
     {
         _tracer.Enter(nameof(ParsePower), _currentToken);
         var value = ParseUnary();
@@ -181,8 +183,7 @@ public class Parser
             //
             // And thus through self-recursion, we've made ParsePower evaluate
             // the part of the expression in a right associative manner.
-            var power = ParsePower();
-            value = Math.Pow(value, power);
+            value = new PostfixExpression(_currentToken, TokenKind.Power, ParsePower());
         }
 
         _tracer.Exit(value);
@@ -190,7 +191,7 @@ public class Parser
     }        
 
     // Unary = '-' Unary | Primary
-    private double ParseUnary()
+    private IExpression ParseUnary()
     {
         _tracer.Enter(nameof(ParseUnary), _currentToken);
 
@@ -201,7 +202,7 @@ public class Parser
             // so on correctly. The latter is parsed as -(-(-2)) If we only
             // wanted to allow a single sign, we could change ParseUnary() below
             // to ParsePrimary().
-            var value = -ParseUnary();
+            var value = new PrefixExpression(_currentToken, TokenKind.Minus, ParseUnary());
             _tracer.Exit(value);
             return value;
         } 
@@ -214,16 +215,16 @@ public class Parser
     }
 
     // Primary = Integer | Float | "(" Expression ")"
-    private double ParsePrimary()
+    private IExpression ParsePrimary()
     {
         _tracer.Enter(nameof(ParsePrimary), _currentToken);
 
         if (IsToken(TokenKind.Integer))
         {
-            var integer = int.Parse(_currentToken.Value);
+            var literal = new IntegerLiteral(_currentToken,int.Parse(_currentToken.Literal));
             NextToken();
-            _tracer.Exit(integer);
-            return integer;
+            _tracer.Exit(literal);
+            return literal;
         }
         if (IsToken(TokenKind.Float))
         {
@@ -231,10 +232,10 @@ public class Parser
             // represent it. The higher precision of double over float leads to
             // fewer rounding error. With float, an input of "3.14" would become
             // 3.14000010490417 when printed with ToString().
-            var float_ = double.Parse(_currentToken.Value, CultureInfo.InvariantCulture);
+            var literal = new FloatLiteral(_currentToken, double.Parse(_currentToken.Literal, CultureInfo.InvariantCulture));
             NextToken();
-            _tracer.Exit(float_);
-            return float_;               
+            _tracer.Exit(literal);
+            return literal;               
         }
         if (MatchToken(TokenKind.LParen))
         {

@@ -71,12 +71,12 @@ public class Token
     // Improvement: extend ReportSyntaxError in lexer and parser with visual
     // indicators of error position in source text.
     public TokenKind Kind { get; }
-    public string Value { get; }
+    public string Literal { get; }
 
-    public Token(TokenKind type, string value = "")
+    public Token(TokenKind type, string literal = "")
     {
         Kind = type;
-        Value = value;
+        Literal = literal;
     }
 }
 
