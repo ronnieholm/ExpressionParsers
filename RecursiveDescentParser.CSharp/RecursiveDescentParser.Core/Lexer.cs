@@ -4,16 +4,15 @@ namespace RecursiveDescentParser.Core;
 
 public enum TokenKind
 {
-    // Alternative: to cut down on boilerplate, enumeration values could
-    // start at 128 rather than 0. This way any single character ASCII token
-    // could be encoded as itself. In the lexer's switch statement, we could
-    // match these tokens like we do with numbers but with a simpler return.
+    // Alternative: to cut down on boilerplate, enumeration values could start
+    // at 128 rather than 0. This way any single character ASCII token could be
+    // encoded as itself. In the lexer's switch statement, we could match these
+    // tokens like we do with numbers but with a simpler return.
     //
-    // Printing error messages from within the parser, in the PrintToken
-    // method, we'd have to check if kind < 128 and if kind is printable and
-    // convert it to a char. For kinds < 128, the error message would read
-    // "Expected token: '('". With explicit tokens as below it reads
-    // "Expected token: LParen".
+    // Printing error messages from within the parser, in the PrintToken method,
+    // we'd have to check if kind < 128 and if kind is printable and convert it
+    // to a char. For kinds < 128, the error message would read "Expected token:
+    // '('". With explicit tokens as below it reads "Expected token: LParen".
 
     // Rather than terminate lexing on an unknown character, we return a
     // special Illegal kind.
@@ -31,30 +30,29 @@ public enum TokenKind
 }
 
 // A typical approach to lexing is to have the Token class hold a TokenType
-// enum, the string matched (the lexeme), and start and end positions into
-// the input for error reporting. But because an integer or float matched
-// isn't a string (and C# doesn't support C style unions), the integer and
-// float is converted to a string and stored inside the Token. Later the
-// parser converts the string to its actual type based on TokenKind. While
-// minor, these conversions are redundant.
+// enum, the string matched (the lexeme), and start and end positions into the
+// input for error reporting. But because an integer or float matched isn't a
+// string (and C# doesn't support C style unions), the integer and float is
+// converted to a string and stored inside the Token. Later the parser converts
+// the string to its actual type based on TokenKind. While minor, these
+// conversions are redundant.
 //
-// A couple of alternatives exist to mitigate the redundant conversations,
-// but unless performance is critical, they make the code harder to read and
-// are best avoided:
+// A couple of alternatives exist to mitigate the redundant conversations, but
+// unless performance is critical, they make the code harder to read and are
+// best avoided:
 //
 // 1. Return only TokenKind, possibly renamed to Token, from NextToken().
-//    Calling code is then responsible for inspecting the TokenKind and
-//    getting the value from a property on the lexer. The lexer would expose
-//    properties for string, integer, float, and so on, and only the
-//    relevant property would contain a value. This way, a token of any kind
-//    can be returned and accessed without conversion. On the downside, the
-//    client may read the wrong property, and it means more state management
-//    for the lexer.
+//    Calling code is then responsible for inspecting the TokenKind and getting
+//    the value from a property on the lexer. The lexer would expose properties
+//    for string, integer, float, and so on, and only the relevant property
+//    would contain a value. This way, a token of any kind can be returned and
+//    accessed without conversion. On the downside, the client may read the
+//    wrong property, and it means more state management for the lexer.
 //
 // 2. Define a generic Token<T> type where T is the type matched, such as
-//    string, int, float, ... But then what to do for tokens with no
-//    associated type, such and a + og -? Should we set T to string and
-//    ignore the matched string? Or set the matched string to "+"?
+//    string, int, float, ... But then what to do for tokens with no associated
+//    type, such and a + og -? Should we set T to string and ignore the matched
+//    string? Or set the matched string to "+"?
 //
 // 3. Define specializations of Token. But since NextToken() returns Token,
 //    clients would need to dispatch based on type of Token to access the
@@ -65,10 +63,10 @@ public enum TokenKind
 public class Token
 {
     // Improvement: save lexeme start and end positions. In principle, with
-    // start end end, we can infer the token value as a substring of the
-    // source and don't need to store it. We pass it anyway since sometimes
-    // the string value differs from the source text. For instance, a float
-    // in the source may be 3,14 (with comma) whereas its Value is "3.14".
+    // start end end, we can infer the token value as a substring of the source
+    // and don't need to store it. We pass it anyway since sometimes the string
+    // value differs from the source text. For instance, a float in the source
+    // may be 3,14 (with comma) whereas its Value is "3.14".
     //
     // Improvement: extend ReportSyntaxError in lexer and parser with visual
     // indicators of error position in source text.
@@ -91,9 +89,9 @@ public class Lexer
 
     public Lexer(string input)
     {
-        // No lexer state to initialize except for input because _currentPos
-        // is already default initialized to zero and _currentChar is
-        // computed based on _currentPos.
+        // No lexer state to initialize except for input because _currentPos is
+        // already default initialized to zero and _currentChar is computed
+        // based on _currentPos.
         _input = input;
     }
 
@@ -106,12 +104,12 @@ public class Lexer
         //     _currentPos++;
         // }
         //
-        // to consume leading whitespace. Instead we handle whitespace in
-        // the switch statement using a goto statement. This provides a
-        // uniform treatment of characters. Consuming whitespace like above
-        // biases the lexer toward whitespace. For each character, the while
-        // expression is evaluated which, depending on the language being
-        // lexed, may be inefficient.
+        // to consume leading whitespace. Instead we handle whitespace in the
+        // switch statement using a goto statement. This provides a uniform
+        // treatment of characters. Consuming whitespace like above biases the
+        // lexer toward whitespace. For each character, the while expression is
+        // evaluated which, depending on the language being lexed, may be
+        // inefficient.
         retry:
         switch (CurrentCharacter)
         {
@@ -127,13 +125,13 @@ public class Lexer
             case '7':
             case '8':
             case '9':
-                // Once we know whether we're at a float or an integer,
-                // we'll backtrack using the bookmark and call the
-                // appropriate lexer method. Note that LL(1) refers to one
-                // token lookahead at the parser level, not the lexer. A lot
-                // of languages that are LL(1) at the token level aren't
-                // LL(1) at the character level. One reason to separate the
-                // lexer and parser is to allow the parser to be LL(1).
+                // Once we know whether we're at a float or an integer, we'll
+                // backtrack using the bookmark and call the appropriate lexer
+                // method. Note that LL(1) refers to one token lookahead at the
+                // parser level, not the lexer. A lot of languages that are
+                // LL(1) at the token level aren't LL(1) at the character level.
+                // One reason to separate the lexer and parser is to allow the
+                // parser to be LL(1).
                 var bookmark = _currentPos;
                 while (char.IsDigit(CurrentCharacter))
                 {

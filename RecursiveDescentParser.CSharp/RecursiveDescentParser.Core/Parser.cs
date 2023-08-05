@@ -60,33 +60,32 @@ public class Parser
     {
         _tracer.Enter(nameof(ParseAddition), _currentToken);
 
-        // We handle left recursive rules by turning them into iterations.
-        // The first call to ParseMultiplication() evaluates the left-hand
-        // side of the addition and if the token following it is a Plus, we
-        // evaluate the right-hand side.
+        // We handle left recursive rules by turning them into iterations. The
+        // first call to ParseMultiplication() evaluates the left-hand side of
+        // the addition and if the token following it is a Plus, we evaluate the
+        // right-hand side.
         //
         // This parser deals correctly with precedence because ParseAddition
-        // consumes as much of the input as it can. What's left, it'll pass
-        // to ParseMultiplication() which repeats the process.
+        // consumes as much of the input as it can. What's left, it'll pass to
+        // ParseMultiplication() which repeats the process.
         //
         // This parser deals correctly with associativity, as in a - b - c,
         // because ParseAddition first consumes a. Then the while loop will
         // consume consume b, keeping track of the accumulated value. From
-        // accumulated value, it'll subtract c, effectively computing (a -
-        // b) - c.
+        // accumulated value, it'll subtract c, effectively computing (a - b) -
+        // c.
         //
         // Alternative: we could extend the hardcoded operators with a
         // table-driven approach for an extensible grammar. Then instead of
         // multiple parse methods deferring to each other, we'd have one
-        // ParseExpression method recursing into itself, passing in the
-        // current precedence level. Based on precedence level, we could
-        // look up the operators with that precedence in the table and match
-        // on in the loop. Then we'd have implemented an explicit precedence
-        // climbing parser.
+        // ParseExpression method recursing into itself, passing in the current
+        // precedence level. Based on precedence level, we could look up the
+        // operators with that precedence in the table and match on in the loop.
+        // Then we'd have implemented an explicit precedence climbing parser.
         //
-        // By the time ParseMultiplication returns, we've already consumed
-        // any higher precedence stuff in the token stream such as
-        // multiplication, power, or parenthesis.
+        // By the time ParseMultiplication returns, we've already consumed any
+        // higher precedence stuff in the token stream such as multiplication,
+        // power, or parenthesis.
         var value = ParseMultiplication();
 
         // Alternative: suppose the lexer had many token kinds for which to
@@ -106,7 +105,7 @@ public class Parser
         // <= TokenKind.LastPlus
         //
         // We may create a helper method such is IsPlusOperator() encapsulating
-        // the expression. This approach would only work if all token kinds are 
+        // the expression. This approach would only work if all token kinds are
         // explicitly declared.
         while (IsToken(TokenKind.Plus) || IsToken(TokenKind.Minus))
         {
@@ -152,8 +151,8 @@ public class Parser
         // only one operator at this level, we don't need to save token kind
         // before advanced to next token.
         //
-        // Because ^ is right associative, we can replace the while loop
-        // with an if. ParsePower is self-recursive so the loop is implicit.
+        // Because ^ is right associative, we can replace the while loop with an
+        // if. ParsePower is self-recursive so the loop is implicit.
         if (IsToken(TokenKind.Power))
         {
             NextToken();
@@ -162,28 +161,26 @@ public class Parser
             //
             // var power = ParseUnary()
             //
-            // below as with the other rules, ^ would become left
-            // associative. For a^b^c, the evaluation would be (a^b)^c when
-            // it should be a^(b^c). Instead, below we call ParsePower() to
-            // reflect the grammar rule, making the method self-recursive
-            // Previous left recursive rules weren't self-recursive but at
-            // this stage called into the next rule.
+            // below as with the other rules, ^ would become left associative.
+            // For a^b^c, the evaluation would be (a^b)^c when it should be
+            // a^(b^c). Instead, below we call ParsePower() to reflect the
+            // grammar rule, making the method self-recursive Previous left
+            // recursive rules weren't self-recursive but at this stage called
+            // into the next rule.
             //
-            // Parsing a^b^c, on first call, ParseUnary() above parses a.
-            // Then ^ is found and the call to ParsePower below causes the
-            // to the method to self-recurse. On the second time around,
-            // ParseUnary() parses b, once again identifies ^ and
-            // self-recurses. The third time around, ParseUnary() parses c,
-            // but since it isn't followed by ^ the if part is skipped and c
-            // is returned to the caller. Execution picks up at the callsite
-            // of second recursion where the value of b^c is calculated and
-            // returned. Then execution picks up at the callsite of the
-            // first recursion where the value of  a^(b^c) is calculated and
-            // returned.
+            // Parsing a^b^c, on first call, ParseUnary() above parses a. Then ^
+            // is found and the call to ParsePower below causes the to the
+            // method to self-recurse. On the second time around, ParseUnary()
+            // parses b, once again identifies ^ and self-recurses. The third
+            // time around, ParseUnary() parses c, but since it isn't followed
+            // by ^ the if part is skipped and c is returned to the caller.
+            // Execution picks up at the callsite of second recursion where the
+            // value of b^c is calculated and returned. Then execution picks up
+            // at the callsite of the first recursion where the value of
+            // a^(b^c) is calculated and returned.
             //
-            // And thus through self-recursion, we've made ParsePower
-            // evaluate the part of the expression in a right associative
-            // manner.
+            // And thus through self-recursion, we've made ParsePower evaluate
+            // the part of the expression in a right associative manner.
             var power = ParsePower();
             value = Math.Pow(value, power);
         }
@@ -199,11 +196,11 @@ public class Parser
 
         if (MatchToken(TokenKind.Minus))
         {
-            // Like with ParsePower(), because ParseUnary() implements a
-            // right recursive grammar rule, it handles not just -2 but --2,
-            // ---2 and so on correctly. The latter is parsed as -(-(-2)) If
-            // we only wanted to allow a single sign, we could change
-            // ParseUnary() below to ParsePrimary().
+            // Like with ParsePower(), because ParseUnary() implements a right
+            // recursive grammar rule, it handles not just -2 but --2, ---2 and
+            // so on correctly. The latter is parsed as -(-(-2)) If we only
+            // wanted to allow a single sign, we could change ParseUnary() below
+            // to ParsePrimary().
             var value = -ParseUnary();
             _tracer.Exit(value);
             return value;
@@ -230,10 +227,10 @@ public class Parser
         }
         if (IsToken(TokenKind.Float))
         {
-            // We semantically call it a float but use the C#'s double type
-            // to represent it. The higher precision of double over float
-            // leads to fewer rounding error. With float, an input of "3.14"
-            // would become 3.14000010490417 when printed with ToString().
+            // We semantically call it a float but use the C#'s double type to
+            // represent it. The higher precision of double over float leads to
+            // fewer rounding error. With float, an input of "3.14" would become
+            // 3.14000010490417 when printed with ToString().
             var float_ = double.Parse(_currentToken.Value, CultureInfo.InvariantCulture);
             NextToken();
             _tracer.Exit(float_);
@@ -249,8 +246,8 @@ public class Parser
 
         // If token hasn't been consumed earlier in the call chain we end up
         // here. Syntax errors reported deal with known tokens in unexpected
-        // places, such as "2+(" as well as unknown tokens, such as%, which
-        // the lexer returns with a token kind of Illegal.
+        // places, such as "2+(" as well as unknown tokens, such as%, which the
+        // lexer returns with a token kind of Illegal.
         ReportSyntaxError(new[] { TokenKind.Integer, TokenKind.Float, TokenKind.LParen });
         throw new Exception("Unreachable");
     }
