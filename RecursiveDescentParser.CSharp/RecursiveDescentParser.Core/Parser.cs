@@ -9,7 +9,7 @@ public class Tracer
 
     public void Enter(string method, Token token)
     {
-        Console.WriteLine($"{new string(' ', _indentation)}Enter: {method}, Literal: {token.Literal}");
+        Console.WriteLine($"{new string(' ', _indentation)}Enter: {method}, Literal: {token.Lexeme}");
         Console.Out.Flush();
         _indentation += 4;
     }
@@ -147,7 +147,7 @@ public class Parser
     private IExpression ParsePower()
     {
         _tracer.Enter(nameof(ParsePower), _currentToken);
-        var value = ParseUnary();
+        var left = ParseUnary();
 
         // Compared to ParseAddition() and ParseMultiplication(), as there's
         // only one operator at this level, we don't need to save token kind
@@ -183,11 +183,11 @@ public class Parser
             //
             // And thus through self-recursion, we've made ParsePower evaluate
             // the part of the expression in a right associative manner.
-            value = new PostfixExpression(_currentToken, TokenKind.Power, ParsePower());
+            left = new InfixExpression(_currentToken, left, TokenKind.Power, ParsePower());
         }
 
-        _tracer.Exit(value);
-        return value;
+        _tracer.Exit(left);
+        return left;
     }        
 
     // Unary = '-' Unary | Primary
@@ -221,7 +221,7 @@ public class Parser
 
         if (IsToken(TokenKind.Integer))
         {
-            var literal = new IntegerLiteral(_currentToken,int.Parse(_currentToken.Literal));
+            var literal = new IntegerLiteral(_currentToken,int.Parse(_currentToken.Lexeme));
             NextToken();
             _tracer.Exit(literal);
             return literal;
@@ -232,7 +232,7 @@ public class Parser
             // represent it. The higher precision of double over float leads to
             // fewer rounding error. With float, an input of "3.14" would become
             // 3.14000010490417 when printed with ToString().
-            var literal = new FloatLiteral(_currentToken, double.Parse(_currentToken.Literal, CultureInfo.InvariantCulture));
+            var literal = new FloatLiteral(_currentToken, double.Parse(_currentToken.Lexeme, CultureInfo.InvariantCulture));
             NextToken();
             _tracer.Exit(literal);
             return literal;               

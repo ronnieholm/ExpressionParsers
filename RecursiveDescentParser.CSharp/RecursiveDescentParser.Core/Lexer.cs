@@ -29,6 +29,22 @@ public enum TokenKind
     RParen
 }
 
+public static class TokenKindExtensions
+{
+    public static string ToFriendlyName(this TokenKind tokenKind) =>
+        tokenKind switch
+        {
+            TokenKind.Plus => "+",
+            TokenKind.Minus => "-",
+            TokenKind.Multiplication => "*",
+            TokenKind.Division => "/",
+            TokenKind.Power => "^",
+            TokenKind.LParen => "(",
+            TokenKind.RParen => ")",
+            _ => tokenKind.ToString()
+        };
+}
+
 // A typical approach to lexing is to have the Token class hold a TokenType
 // enum, the string matched (the lexeme), and start and end positions into the
 // input for error reporting. But because an integer or float matched isn't a
@@ -71,27 +87,34 @@ public class Token
     // Improvement: extend ReportSyntaxError in lexer and parser with visual
     // indicators of error position in source text.
     public TokenKind Kind { get; }
-    public string Literal { get; }
+    public string Lexeme { get; }
+    
+    // TODO: Store lexeme separate from "object? Literal"
+    // TODO: Add location information (line, column)
 
-    public Token(TokenKind type, string literal = "")
+    public Token(TokenKind type, string lexeme = "")
     {
         Kind = type;
-        Literal = literal;
+        Lexeme = lexeme;
     }
 }
 
 public class Lexer
 {
     private readonly string _input;
-    private int _currentPos;
 
-    private char CurrentCharacter => _currentPos < _input.Length ? _input[_currentPos] : '\0';
+    // Offset to the first character in the lexeme being scanned.
+    private int _start;
+    
+    // Offset to the character currently being considered .
+    private int _current;
+
+    private char CurrentCharacter => _current < _input.Length ? _input[_current] : '\0';
 
     public Lexer(string input)
     {
-        // No lexer state to initialize except for input because _currentPos is
-        // already default initialized to zero and _currentChar is computed
-        // based on _currentPos.
+        // No lexer state to initialize except for input because _current is
+        // default initialized and _currentChar is computed based on _current.
         _input = input;
     }
 
@@ -109,10 +132,11 @@ public class Lexer
         // evaluated which, depending on the language being lexed, may be
         // inefficient.
 retry:
+        if (_current >= _input.Length)
+            return new Token(TokenKind.Eof, "");
+
         switch (CurrentCharacter)
         {
-            case '\0':
-                return new Token(TokenKind.Eof);
             case '0':
             case '1':
             case '2':
@@ -130,50 +154,47 @@ retry:
                 // LL(1) at the token level aren't LL(1) at the character level.
                 // One reason to separate the lexer and parser is to allow the
                 // parser to be LL(1).
-                var bookmark = _currentPos;
+                var bookmark = _current;
                 while (char.IsDigit(CurrentCharacter))
                 {
-                    _currentPos++;
+                    _current++;
                 }
                 if (CurrentCharacter == '.')
                 {
-                    _currentPos = bookmark;
+                    _current = bookmark;
                     var float_ = LexFloat();
-                    return new Token(TokenKind.Float, float_.ToString());                       
+                    return new Token(TokenKind.Float, float_);                       
                 }
-                else
-                {
-                    _currentPos = bookmark;
-                    var integer = LexInteger();
-                    return new Token(TokenKind.Integer, integer.ToString());    
-                }
+                _current = bookmark;
+                var integer = LexInteger();
+                return new Token(TokenKind.Integer, integer);
             case '+':
-                _currentPos++;
+                _current++;
                 return new Token(TokenKind.Plus);
             case '-':
-                _currentPos++;
-                return new Token(TokenKind.Minus);                
+                _current++;
+                return new Token(TokenKind.Minus);
             case '*':
-                _currentPos++;
-                return new Token(TokenKind.Multiplication);                
+                _current++;
+                return new Token(TokenKind.Multiplication);     
             case '/':
-                _currentPos++;
-                return new Token(TokenKind.Division);            
+                _current++;
+                return new Token(TokenKind.Division);
             case '^':
-                _currentPos++;
-                return new Token(TokenKind.Power);            
+                _current++;
+                return new Token(TokenKind.Power);
             case '(':
-                _currentPos++;
-                return new Token(TokenKind.LParen);                
+                _current++;
+                return new Token(TokenKind.LParen);
             case ')':
-                _currentPos++;
+                _current++;
                 return new Token(TokenKind.RParen);
             case ' ':
             case '\n':
             case '\r':
             case '\t':
             case '\v':
-                _currentPos++;
+                _current++;
                 goto retry;
             default:
                 return new Token(TokenKind.Illegal, CurrentCharacter.ToString());
@@ -186,26 +207,22 @@ retry:
         // Don't parse by returning a Int32 or Int64. Instead return the integer
         // as a string and leave it to the parser to interpret it. It may be the
         // integer is too large for the Int32 or Int64.
-        var start = _currentPos++;
+        var start = _current++;
         while (char.IsDigit(CurrentCharacter))
-        {
-            _currentPos++;
-        }
-        return _input[start.._currentPos];
+            _current++;
+        return _input[start.._current];
     }
 
     // Float = Integer "." Integer
     private string LexFloat()
     {
-        var start = _currentPos;
+        var start = _current;
         LexInteger();
-        _currentPos++;
+        _current++;
         if (!char.IsDigit(CurrentCharacter))
-        {
             ReportSyntaxError("digit");
-        }
         LexInteger();
-        var end = _currentPos;
+        var end = _current;
         return _input[start..end];
     }
 

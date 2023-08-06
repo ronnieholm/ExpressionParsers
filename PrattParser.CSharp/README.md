@@ -162,3 +162,6 @@ when applied to itself.
 - https://matklad.github.io/2020/04/15/from-pratt-to-dijkstra.html
 - https://matklad.github.io/2020/04/13/simple-but-powerful-pratt-parsing
 - https://engineering.desmos.com/articles/pratt-parser
+- https://www.reddit.com/r/ProgrammingLanguages/comments/zfnb1s/what_are_the_advantages_of_pratt_parsing_over/
+- https://martin.janiczek.cz/2023/07/03/demystifying-pratt-parsers.html#walk-through-example
+- https://fpish.net/blog/adam.granicz/id/1024/http~3a~2f~2fwww.intellifactory.com~2fblogs~2fadam.granicz~2f2009~2f5~2f23~2fParsing-with-active-patterns.article
