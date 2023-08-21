@@ -1,5 +1,5 @@
 using System;
-using System.Globalization;
+using System.Diagnostics;
 
 namespace RecursiveDescentParser.Core;
 
@@ -221,7 +221,7 @@ public class Parser
 
         if (IsToken(TokenKind.Integer))
         {
-            var literal = new IntegerLiteral(_currentToken,int.Parse(_currentToken.Lexeme));
+            var literal = new IntegerLiteral(_currentToken, (long)_currentToken.Literal!);
             NextToken();
             _tracer.Exit(literal);
             return literal;
@@ -232,7 +232,7 @@ public class Parser
             // represent it. The higher precision of double over float leads to
             // fewer rounding error. With float, an input of "3.14" would become
             // 3.14000010490417 when printed with ToString().
-            var literal = new FloatLiteral(_currentToken, double.Parse(_currentToken.Lexeme, CultureInfo.InvariantCulture));
+            var literal = new FloatLiteral(_currentToken, (double)_currentToken.Literal!);
             NextToken();
             _tracer.Exit(literal);
             return literal;               
@@ -250,7 +250,7 @@ public class Parser
         // places, such as "2+(" as well as unknown tokens, such as%, which the
         // lexer returns with a token kind of Illegal.
         ReportSyntaxError(new[] { TokenKind.Integer, TokenKind.Float, TokenKind.LParen });
-        throw new Exception("Unreachable");
+        throw new UnreachableException();
     }
 
     private void NextToken() => _currentToken = _lexer.NextToken();

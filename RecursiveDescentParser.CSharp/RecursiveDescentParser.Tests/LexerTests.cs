@@ -9,10 +9,10 @@ public class LexerTests
     public void Tokens()
     {
         var l = new Lexer("0 0.0 00.01 42 + - * / ^ 3.14 ( ) x");
-        AssertToken(l.NextToken(), TokenKind.Integer, new Location(0, 1),"0", 0);
+        AssertToken(l.NextToken(), TokenKind.Integer, new Location(0, 1),"0", 0L);
         AssertToken(l.NextToken(), TokenKind.Float, new Location(2, 5),"0.0", 0.0);
         AssertToken(l.NextToken(), TokenKind.Float, new Location(6, 11),"00.01", 0.01);
-        AssertToken(l.NextToken(), TokenKind.Integer, new Location(12, 14),"42", 42);
+        AssertToken(l.NextToken(), TokenKind.Integer, new Location(12, 14),"42", 42L);
         AssertToken(l.NextToken(), TokenKind.Plus, new Location(15, 16),"+", null);
         AssertToken(l.NextToken(), TokenKind.Minus, new Location(17, 18),"-", null);
         AssertToken(l.NextToken(), TokenKind.Multiplication, new Location(19, 20),"*", null);

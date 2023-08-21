@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 namespace RecursiveDescentParser.Core;
 
@@ -31,7 +32,6 @@ public enum TokenKind
 
 public static class TokenKindExtensions
 {
-    // TODO: Get rid of this function as use the token's lexeme property
     public static string ToFriendlyName(this TokenKind tokenKind) =>
         tokenKind switch
         {
@@ -157,12 +157,12 @@ next:
                     // Backtrack to start of float.
                     _current = _start;
                     var floatString = LexFloat();
-                    return new Token(TokenKind.Float, new Location(_start, _current), floatString, double.Parse(floatString));                       
+                    return new Token(TokenKind.Float, new Location(_start, _current), floatString, double.Parse(floatString, CultureInfo.InvariantCulture));                       
                 }
                 // Backtrack to start of int.
                 _current = _start;
                 var intString = LexInteger();
-                return new Token(TokenKind.Integer, new Location(_start, _current), intString, int.Parse(intString));
+                return new Token(TokenKind.Integer, new Location(_start, _current), intString, long.Parse(intString, CultureInfo.InvariantCulture));
             case '+':
                 _current++;
                 return new Token(TokenKind.Plus, new Location(_start, _current), _input[_start.._current], null);
