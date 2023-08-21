@@ -71,19 +71,19 @@ public class AstVisitorTests
         var e = p.Parse();
         
         var a = new InfixAstFlattener();
-        var av = a.Flatten(e);
+        var av = a.Evaluate(e);
         Assert.Equal(infix, av);
 
         var b = new PrefixAstFlattener();
-        var bv = b.Flatten(e);
+        var bv = b.Evaluate(e);
         Assert.Equal(prefix, bv);
 
         var c = new PostfixAstFlattener();
-        var cv = c.Flatten(e);
+        var cv = c.Evaluate(e);
         Assert.Equal(postfix, cv);
 
         var d = new Interpreter();
-        var dv = d.Interpret(e);
+        var dv = d.Evaluate(e);
         Assert.Equal(value, dv);
     }
 }

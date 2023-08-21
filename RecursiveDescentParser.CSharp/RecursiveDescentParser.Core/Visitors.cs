@@ -8,7 +8,7 @@ namespace RecursiveDescentParser.Core;
 
 public class InfixAstFlattener : IExpressionVisitor<string>
 {
-    public string Flatten(IExpression expr) => expr.Accept(this);
+    public string Evaluate(IExpression expr) => expr.Accept(this);
     public string Visit(IntegerLiteral literal) => literal.Value.ToString(CultureInfo.InvariantCulture);
     public string Visit(FloatLiteral literal) => literal.Value.ToString(CultureInfo.InvariantCulture);
     public string Visit(PrefixExpression expr) => $"({expr.Operator.ToFriendlyName()}{expr.Right.Accept(this)})";
@@ -17,7 +17,7 @@ public class InfixAstFlattener : IExpressionVisitor<string>
 
 public class PrefixAstFlattener : IExpressionVisitor<string>
 {
-    public string Flatten(IExpression expr) => expr.Accept(this);
+    public string Evaluate(IExpression expr) => expr.Accept(this);
     public string Visit(IntegerLiteral literal) => literal.Value.ToString(CultureInfo.InvariantCulture);
     public string Visit(FloatLiteral literal) => literal.Value.ToString(CultureInfo.InvariantCulture);
     public string Visit(PrefixExpression expr) => $"{expr.Operator.ToFriendlyName()} {expr.Right.Accept(this)}";
@@ -26,7 +26,7 @@ public class PrefixAstFlattener : IExpressionVisitor<string>
 
 public class PostfixAstFlattener : IExpressionVisitor<string>
 {
-    public string Flatten(IExpression expr) => expr.Accept(this);
+    public string Evaluate(IExpression expr) => expr.Accept(this);
     public string Visit(IntegerLiteral literal) => literal.Value.ToString(CultureInfo.InvariantCulture);
     public string Visit(FloatLiteral literal) => literal.Value.ToString(CultureInfo.InvariantCulture);
     public string Visit(PrefixExpression expr) => $"{expr.Right.Accept(this)} {expr.Operator.ToFriendlyName()}";
@@ -35,7 +35,7 @@ public class PostfixAstFlattener : IExpressionVisitor<string>
 
 public class Interpreter : IExpressionVisitor<double>
 {
-    public double Interpret(IExpression expr) => expr.Accept(this);
+    public double Evaluate(IExpression expr) => expr.Accept(this);
     public double Visit(IntegerLiteral literal) => literal.Value;
     public double Visit(FloatLiteral literal) => literal.Value;
 

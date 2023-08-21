@@ -1,5 +1,11 @@
 namespace RecursiveDescentParser.Core;
 
+// As with the Monkey language interpreter, we can traverse the AST without a explicit
+// visitor interface. It then becomes each evaluator's responsibility to manually
+// ensure that each type of AST node is evaluated. With the interface, the compiler
+// will ensure that each method in the interface has an implementation and that each
+// evaluator of the same AST has the same structure. 
+
 public interface IExpressionVisitor<out T>
 {
     T Visit(IntegerLiteral literal);
