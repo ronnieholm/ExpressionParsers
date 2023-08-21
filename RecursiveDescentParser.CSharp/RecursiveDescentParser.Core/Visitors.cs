@@ -26,3 +26,15 @@ public class PrefixAstFlattener : IExpressionVisitor<string>
     public string Visit(InfixExpression expr) => $"{expr.Operator.ToFriendlyName()} {expr.Left.Accept(this)} {expr.Right.Accept(this)}";
 }
 
+public class PostfixAstFlattener : IExpressionVisitor<string>
+{
+    public string Flatten(IExpression expr) => expr.Accept(this);
+
+    public string Visit(IntegerLiteral literal) => literal.Value.ToString(CultureInfo.InvariantCulture);
+
+    public string Visit(FloatLiteral literal) => literal.Value.ToString(CultureInfo.InvariantCulture);
+
+    public string Visit(PrefixExpression expr) => $"{expr.Right.Accept(this)} {expr.Operator.ToFriendlyName()}";
+
+    public string Visit(InfixExpression expr) => $"{expr.Left.Accept(this)} {expr.Right.Accept(this)} {expr.Operator.ToFriendlyName()}";
+}
