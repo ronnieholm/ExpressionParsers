@@ -148,19 +148,19 @@ next:
                 // LL(1) at the token level aren't LL(1) at the character level.
                 // One reason to separate the lexer and parser is to allow the
                 // parser to be LL(1).
-                var bookmark = _current;
+                //var bookmark = _current;
                 while (char.IsDigit(CurrentCharacter))
-                {
                     _current++;
-                }
+
                 if (CurrentCharacter == '.')
                 {
                     // Backtrack to start of float.
-                    _current = bookmark;
+                    _current = _start;
                     var floatString = LexFloat();
                     return new Token(TokenKind.Float, new Location(_start, _current), floatString, double.Parse(floatString));                       
                 }
-                _current = bookmark;
+                // Backtrack to start of int.
+                _current = _start;
                 var intString = LexInteger();
                 return new Token(TokenKind.Integer, new Location(_start, _current), intString, int.Parse(intString));
             case '+':
