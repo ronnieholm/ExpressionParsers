@@ -31,6 +31,7 @@ public enum TokenKind
 
 public static class TokenKindExtensions
 {
+    // TODO: Get rid of this function as use the token's lexeme property
     public static string ToFriendlyName(this TokenKind tokenKind) =>
         tokenKind switch
         {
@@ -44,6 +45,8 @@ public static class TokenKindExtensions
             _ => tokenKind.ToString()
         };
 }
+
+public record Location(int Start, int End);
 
 // A typical approach to lexing is to have the Token class hold a TokenType
 // enum, the string matched (the lexeme), and start and end positions into the
@@ -76,29 +79,16 @@ public static class TokenKindExtensions
 //
 // The lexer/parser employs the string approach and converts integers, and
 // floats to strings and back again.
-public class Token
-{
-    // Improvement: save lexeme start and end positions. In principle, with
-    // start end end, we can infer the token value as a substring of the source
-    // and don't need to store it. We pass it anyway since sometimes the string
-    // value differs from the source text. For instance, a float in the source
-    // may be 3,14 (with comma) whereas its Value is "3.14".
-    //
-    // Improvement: extend ReportSyntaxError in lexer and parser with visual
-    // indicators of error position in source text.
-    public TokenKind Kind { get; }
-    public string? Lexeme { get; }
-    public object? Literal { get; }
-    
-    // TODO: Add location information (line, column)
-
-    public Token(TokenKind type, string? lexeme = null, object? literal = null)
-    {
-        Kind = type;
-        Lexeme = lexeme;
-        Literal = literal;
-    }
-}
+public record Token(
+    TokenKind Kind,
+    Location Location,
+    // In principle, with Location, we can infer lexeme and literal from a
+    // substring of the source. We pass those anyway as sometimes the string
+    // value differs from the source. For instance, a lexeme could be 3,14
+    // (with comma) whereas its literal would be 3.14. Sometimes a parser
+    // will convert the lexeme to a literal, sometimes a lexer will.
+    string? Lexeme,
+    object? Literal);
 
 public class Lexer
 {
@@ -137,7 +127,7 @@ next:
         // Reset _start below next label or whitespace becomes part of lexeme.
         _start = _current;
         if (_current >= _input.Length)
-            return new Token(TokenKind.Eof);
+            return new Token(TokenKind.Eof, new Location(_start, _current), null, null);
 
         switch (CurrentCharacter)
         {
@@ -165,27 +155,35 @@ next:
                 }
                 if (CurrentCharacter == '.')
                 {
+                    // Backtrack to start of float.
                     _current = bookmark;
                     var floatString = LexFloat();
-                    return new Token(TokenKind.Float, floatString, double.Parse(floatString));                       
+                    return new Token(TokenKind.Float, new Location(_start, _current), floatString, double.Parse(floatString));                       
                 }
                 _current = bookmark;
                 var intString = LexInteger();
-                return new Token(TokenKind.Integer, intString, int.Parse(intString));
+                return new Token(TokenKind.Integer, new Location(_start, _current), intString, int.Parse(intString));
             case '+':
-                return new Token(TokenKind.Plus, _input[_start..++_current]);
+                _current++;
+                return new Token(TokenKind.Plus, new Location(_start, _current), _input[_start.._current], null);
             case '-':
-                return new Token(TokenKind.Minus, _input[_start..++_current]);
+                _current++;
+                return new Token(TokenKind.Minus, new Location(_start, _current), _input[_start.._current], null);
             case '*':
-                return new Token(TokenKind.Multiplication, _input[_start..++_current]);
+                _current++;
+                return new Token(TokenKind.Multiplication, new Location(_start, _current), _input[_start.._current], null);
             case '/':
-                return new Token(TokenKind.Division, _input[_start..++_current]);
+                _current++;
+                return new Token(TokenKind.Division, new Location(_start, _current), _input[_start.._current], null);
             case '^':
-                return new Token(TokenKind.Power, _input[_start..++_current]);
+                _current++;
+                return new Token(TokenKind.Power, new Location(_start, _current), _input[_start.._current], null);
             case '(':
-                return new Token(TokenKind.LParen, _input[_start..++_current]);
+                _current++;
+                return new Token(TokenKind.LParen, new Location(_start, _current), _input[_start.._current], null);
             case ')':
-                return new Token(TokenKind.RParen, _input[_start..++_current]);
+                _current++;
+                return new Token(TokenKind.RParen, new Location(_start, _current), _input[_start.._current], null);
             case ' ':
             case '\n':
             case '\r':
@@ -194,7 +192,8 @@ next:
                 _current++;
                 goto next;
             default:
-                return new Token(TokenKind.Illegal, _input[_start..++_current]);
+                _current++;
+                return new Token(TokenKind.Illegal, new Location(_start, _current), _input[_start.._current], null);
         }
     }
 
