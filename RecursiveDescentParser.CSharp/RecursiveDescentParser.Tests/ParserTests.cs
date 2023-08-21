@@ -47,24 +47,24 @@ public class ParserTests
 public class AstVisitorTests
 {
     [Theory]
-    [InlineData("0.5", "0.5", "0.5", "0.5")]
-    [InlineData("1", "1", "1", "1")]
-    [InlineData("(1)", "1", "1", "1")]
-    [InlineData("-1", "(-1)", "- 1", "1 -")]
-    [InlineData("(((-1)))", "(-1)", "- 1", "1 -")]
-    [InlineData("--1", "(-(-1))", "- - 1", "1 - -")]
-    [InlineData("1 + 2", "(1 + 2)", "+ 1 2", "1 2 +")]
-    [InlineData("1 + 2 + 3", "((1 + 2) + 3)", "+ + 1 2 3", "1 2 + 3 +")]
-    [InlineData("1 + 2 - 3", "((1 + 2) - 3)", "- + 1 2 3", "1 2 + 3 -")]
-    [InlineData("1 - 2 + 3", "((1 - 2) + 3)", "+ - 1 2 3", "1 2 - 3 +")]
-    [InlineData("1 + 2 * 3", "(1 + (2 * 3))", "+ 1 * 2 3", "1 2 3 * +")]
-    [InlineData("(1 + 2) * 3", "((1 + 2) * 3)", "* + 1 2 3", "1 2 + 3 *")]
-    [InlineData("1 * 2 / 3", "((1 * 2) / 3)", "/ * 1 2 3", "1 2 * 3 /")]
-    [InlineData("1 / 2 * 3", "((1 / 2) * 3)", "* / 1 2 3", "1 2 / 3 *")]
-    [InlineData("1 ^ 2", "(1 ^ 2)", "^ 1 2", "1 2 ^")]
-    [InlineData("1 ^ 2 ^ 3", "(1 ^ (2 ^ 3))", "^ 1 ^ 2 3", "1 2 3 ^ ^")]
-    [InlineData("(1 ^ 2) ^ 3", "((1 ^ 2) ^ 3)", "^ ^ 1 2 3", "1 2 ^ 3 ^")]
-    public void ExpressionTests(string input, string infix, string prefix, string postfix)
+    [InlineData("0.5", "0.5", "0.5", "0.5", 0.5)]
+    [InlineData("1", "1", "1", "1", 1)]
+    [InlineData("(1)", "1", "1", "1", 1)]
+    [InlineData("-1", "(-1)", "- 1", "1 -", -1)]
+    [InlineData("(((-1)))", "(-1)", "- 1", "1 -", -1)]
+    [InlineData("--1", "(-(-1))", "- - 1", "1 - -", 1)]
+    [InlineData("1 + 2", "(1 + 2)", "+ 1 2", "1 2 +", 3)]
+    [InlineData("1 + 2 + 3", "((1 + 2) + 3)", "+ + 1 2 3", "1 2 + 3 +", 6)]
+    [InlineData("1 + 2 - 3", "((1 + 2) - 3)", "- + 1 2 3", "1 2 + 3 -", 0)]
+    [InlineData("1 - 2 + 3", "((1 - 2) + 3)", "+ - 1 2 3", "1 2 - 3 +", 2)]
+    [InlineData("1 + 2 * 3", "(1 + (2 * 3))", "+ 1 * 2 3", "1 2 3 * +", 7)]
+    [InlineData("(1 + 2) * 3", "((1 + 2) * 3)", "* + 1 2 3", "1 2 + 3 *", 9)]
+    [InlineData("1 * 2 / 3", "((1 * 2) / 3)", "/ * 1 2 3", "1 2 * 3 /", (double)2 / 3)]
+    [InlineData("1 / 2 * 3", "((1 / 2) * 3)", "* / 1 2 3", "1 2 / 3 *", 1.5)]
+    [InlineData("1 ^ 2", "(1 ^ 2)", "^ 1 2", "1 2 ^", 1)]
+    [InlineData("1 ^ 2 ^ 3", "(1 ^ (2 ^ 3))", "^ 1 ^ 2 3", "1 2 3 ^ ^", 1)]
+    [InlineData("(1 ^ 2) ^ 3", "((1 ^ 2) ^ 3)", "^ ^ 1 2 3", "1 2 ^ 3 ^", 1)]
+    public void ExpressionTests(string input, string infix, string prefix, string postfix, double value)
     {
         var l = new Lexer(input);
         var p = new Parser(l, new Tracer());
@@ -81,5 +81,9 @@ public class AstVisitorTests
         var c = new PostfixAstFlattener();
         var cv = c.Flatten(e);
         Assert.Equal(postfix, cv);
+
+        var d = new Interpreter();
+        var dv = d.Interpret(e);
+        Assert.Equal(value, dv);
     }
 }
