@@ -87,15 +87,16 @@ public class Token
     // Improvement: extend ReportSyntaxError in lexer and parser with visual
     // indicators of error position in source text.
     public TokenKind Kind { get; }
-    public string Lexeme { get; }
+    public string? Lexeme { get; }
+    public object? Literal { get; }
     
-    // TODO: Store lexeme separate from "object? Literal"
     // TODO: Add location information (line, column)
 
-    public Token(TokenKind type, string lexeme = "")
+    public Token(TokenKind type, string? lexeme = null, object? literal = null)
     {
         Kind = type;
         Lexeme = lexeme;
+        Literal = literal;
     }
 }
 
@@ -131,9 +132,12 @@ public class Lexer
         // lexer toward whitespace. For each character, the while expression is
         // evaluated which, depending on the language being lexed, may be
         // inefficient.
-retry:
+
+next:
+        // Reset _start below next label or whitespace becomes part of lexeme.
+        _start = _current;
         if (_current >= _input.Length)
-            return new Token(TokenKind.Eof, "");
+            return new Token(TokenKind.Eof);
 
         switch (CurrentCharacter)
         {
@@ -162,42 +166,35 @@ retry:
                 if (CurrentCharacter == '.')
                 {
                     _current = bookmark;
-                    var float_ = LexFloat();
-                    return new Token(TokenKind.Float, float_);                       
+                    var floatString = LexFloat();
+                    return new Token(TokenKind.Float, floatString, double.Parse(floatString));                       
                 }
                 _current = bookmark;
-                var integer = LexInteger();
-                return new Token(TokenKind.Integer, integer);
+                var intString = LexInteger();
+                return new Token(TokenKind.Integer, intString, int.Parse(intString));
             case '+':
-                _current++;
-                return new Token(TokenKind.Plus);
+                return new Token(TokenKind.Plus, _input[_start..++_current]);
             case '-':
-                _current++;
-                return new Token(TokenKind.Minus);
+                return new Token(TokenKind.Minus, _input[_start..++_current]);
             case '*':
-                _current++;
-                return new Token(TokenKind.Multiplication);     
+                return new Token(TokenKind.Multiplication, _input[_start..++_current]);
             case '/':
-                _current++;
-                return new Token(TokenKind.Division);
+                return new Token(TokenKind.Division, _input[_start..++_current]);
             case '^':
-                _current++;
-                return new Token(TokenKind.Power);
+                return new Token(TokenKind.Power, _input[_start..++_current]);
             case '(':
-                _current++;
-                return new Token(TokenKind.LParen);
+                return new Token(TokenKind.LParen, _input[_start..++_current]);
             case ')':
-                _current++;
-                return new Token(TokenKind.RParen);
+                return new Token(TokenKind.RParen, _input[_start..++_current]);
             case ' ':
             case '\n':
             case '\r':
             case '\t':
             case '\v':
                 _current++;
-                goto retry;
+                goto next;
             default:
-                return new Token(TokenKind.Illegal, CurrentCharacter.ToString());
+                return new Token(TokenKind.Illegal, _input[_start..++_current]);
         }
     }
 

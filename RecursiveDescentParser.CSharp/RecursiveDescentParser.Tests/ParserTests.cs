@@ -43,3 +43,34 @@ public class ParserTests
         //Assert.Equal(expected, i, 4);
     }
 }
+
+public class AstVisitorTests
+{
+    [Theory]
+    [InlineData("0.5", "0.5")]
+    [InlineData("1", "1")]
+    [InlineData("(1)", "1")]
+    [InlineData("-1", "(-1)")]
+    [InlineData("(((-1)))", "(-1)")]
+    [InlineData("--1", "(-(-1))")]
+    [InlineData("1 + 2", "(1 + 2)")]
+    [InlineData("1 + 2 + 3", "((1 + 2) + 3)")]
+    [InlineData("1 + 2 - 3", "((1 + 2) - 3)")]
+    [InlineData("1 - 2 + 3", "((1 - 2) + 3)")]
+    [InlineData("1 + 2 * 3", "(1 + (2 * 3))")]
+    [InlineData("(1 + 2) * 3", "((1 + 2) * 3)")]
+    [InlineData("1 * 2 / 3", "((1 * 2) / 3)")]
+    [InlineData("1 / 2 * 3", "((1 / 2) * 3)")]
+    [InlineData("1 ^ 2", "(1 ^ 2)")]
+    [InlineData("1 ^ 2 ^ 3", "(1 ^ (2 ^ 3))")]
+    [InlineData("(1 ^ 2) ^ 3", "((1 ^ 2) ^ 3)")]
+    public void ExpressionTests(string input, string output)
+    {
+        var l = new Lexer(input);
+        var p = new Parser(l, new Tracer());
+        var e = p.Parse();
+        var a = new AstFlattener();
+        var v = a.Flatten(e);
+        Assert.Equal(output, v);
+    }
+}
