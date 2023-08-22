@@ -2,9 +2,12 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 
-// TODO: graphviz dot file generator (graphviz.org)
-
 namespace RecursiveDescentParser.Core;
+
+// Strictly speaking, we don't require the Evaluate method on each IExpressionVisitor
+// implementation, and it isn't part of the interface. Instead we could call the Visit
+// method and correct overload is determined by the compiler. The Evaluate method is
+// useful, though, in contexts which require initial setup.
 
 public class InfixAstFlattener : IExpressionVisitor<string>
 {
@@ -46,14 +49,45 @@ public class Interpreter : IExpressionVisitor<double>
             _ => throw new UnreachableException(expr.Operator.ToFriendlyName())
         };
 
-    public double Visit(InfixExpression expr) =>
-        expr.Operator switch
+    public double Visit(InfixExpression expr)
+    {
+        var left = expr.Left.Accept(this);
+        var right = expr.Right.Accept(this);
+        return expr.Operator switch
         {
-            TokenKind.Plus => expr.Left.Accept(this) + expr.Right.Accept(this),
-            TokenKind.Minus => expr.Left.Accept(this) - expr.Right.Accept(this),
-            TokenKind.Multiplication => expr.Left.Accept(this) * expr.Right.Accept(this),
-            TokenKind.Division => expr.Left.Accept(this) / expr.Right.Accept(this),
-            TokenKind.Power => Math.Pow(expr.Left.Accept(this), expr.Right.Accept(this)),
+            TokenKind.Plus => left + right,
+            TokenKind.Minus => left - right,
+            TokenKind.Multiplication => left * right,
+            TokenKind.Division => left / right,
+            TokenKind.Power => Math.Pow(left, right),
             _ => throw new UnreachableException(expr.Operator.ToFriendlyName())
         };
+    }
+}
+
+// TODO: graphviz dot file generator (graphviz.org)
+
+public class GraphvizVisualizer : IExpressionVisitor<string>
+{
+    public string Evaluate(IExpression expr) => expr.Accept(this);
+    
+    public string Visit(IntegerLiteral literal)
+    {
+        throw new NotImplementedException();
+    }
+
+    public string Visit(FloatLiteral literal)
+    {
+        throw new NotImplementedException();
+    }
+
+    public string Visit(PrefixExpression expr)
+    {
+        throw new NotImplementedException();
+    }
+
+    public string Visit(InfixExpression expr)
+    {
+        throw new NotImplementedException();
+    }
 }
