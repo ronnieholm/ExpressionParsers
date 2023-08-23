@@ -203,7 +203,7 @@ next:
         // Don't parse by returning a Int32 or Int64. Instead return the integer
         // as a string and leave it to the parser to interpret it. It may be the
         // integer is too large for the Int32 or Int64.
-        var start = _current++;
+        var start = _current;
         while (char.IsDigit(CurrentCharacter))
             _current++;
         return _input[start.._current];
