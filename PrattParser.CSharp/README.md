@@ -167,3 +167,4 @@ when applied to itself.
 - https://fpish.net/blog/adam.granicz/id/1024/http~3a~2f~2fwww.intellifactory.com~2fblogs~2fadam.granicz~2f2009~2f5~2f23~2fParsing-with-active-patterns.article
 - https://github.com/LensPlaysGames/Intercept/blob/main/src/parser.c#L1764 (parse_expr_with_precedence function is like Pratt, just with recursive descent, which might be better for understanding and error recovery)
 - Go over sections in Nystroms book (especially table for all tokens)
+- https://chidiwilliams.com/post/on-recursive-descent-and-pratt-parsing

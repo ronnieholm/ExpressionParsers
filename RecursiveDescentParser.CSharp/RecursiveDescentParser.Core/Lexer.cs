@@ -97,7 +97,7 @@ public class Lexer
     // Offset to the first character in the lexeme being scanned.
     private int _start;
     
-    // Offset to the character currently being considered .
+    // Offset to the character currently being considered.
     private int _current;
 
     private char CurrentCharacter => _current < _input.Length ? _input[_current] : '\0';
