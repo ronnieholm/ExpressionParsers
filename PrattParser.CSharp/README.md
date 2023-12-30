@@ -168,3 +168,4 @@ when applied to itself.
 - https://github.com/LensPlaysGames/Intercept/blob/main/src/parser.c#L1764 (parse_expr_with_precedence function is like Pratt, just with recursive descent, which might be better for understanding and error recovery)
 - Go over sections in Nystroms book (especially table for all tokens)
 - https://chidiwilliams.com/post/on-recursive-descent-and-pratt-parsing
+- https://martin.janiczek.cz/2023/07/03/demystifying-pratt-parsers.html
