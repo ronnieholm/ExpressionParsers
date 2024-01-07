@@ -153,9 +153,12 @@ when applied to itself.
 - [Jon Blow: Discussion: Making Programming Language Parsers, etc (Q&A is in
   separate video)](https://www.youtube.com/watch?v=MnctEW1oL-E). Around 1h08m48s
   explains Pratt parsing as an alternative to the AST rewriting done in JAI. It
-  may not actually be Pratt parsing, but an [operator precedence parser](https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing).
+  may not actually be Pratt parsing, but an [operator precedence
+  parser](https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing).
   Also goes into another method that does AST rewriting before returning each
   node up the stack.
+- [Jon Blow: Discussion with Casey Muratori about how easy precedence
+  is...](https://www.twitch.tv/videos/2024681994) follow up to previous.
 - http://journal.stuffwithstuff.com/2011/03/19pratt-parsers-expression-parsing-made-easy/
 - https://dev.to/jrop/pratt-parsing
 - https://eli.thegreenplace.net/2010/01/02/top-down-operator-precedence-parsing
