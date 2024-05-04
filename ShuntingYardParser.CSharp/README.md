@@ -3,7 +3,7 @@ Shunting Yard Parser
 
 Implements a parser that accepts a mathematical expression in infix notation and
 outputs the corresponding prefix and postfix notation and the abstract syntax tree
-for the expression. The parser adheres to the common rules of associativity and 
+for the expression. The parser adheres to the common rules of associativity and
 precedence.
 
 Here's an example of running the application:
@@ -33,3 +33,7 @@ Here's an example of running the application:
 			Literal (2)
 			Literal (5)
 		Literal (7)
+
+## See also
+
+- [DIY Programming Language #1: The Shunting Yard Algorithm](https://www.youtube.com/watch?v=unh6aK8WMwM)
