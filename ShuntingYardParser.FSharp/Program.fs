@@ -11,7 +11,7 @@ open Swensen.Unquote
 // Backus-Naus expression grammar (whitespace-handling excluded)
 // Not used directly for this lexer/parser because the parser
 // combines parsing and evaluation using the Shunting Yard algorithm:
-// 
+//
 // Expression := Term (BinOp Term)*
 // Term := Integer | UnaryOp Term | '(' Expression ')'
 // BinOps := '+' | '-' | '*' | '/' | '^'
@@ -19,16 +19,16 @@ open Swensen.Unquote
 // Digit := '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
 // Integer := Digit+
 
-// all the top-level expressionParser requires is a stream of tokens. This 
-// isn't typical of a parser. Instead a parser would normally construct an 
-// abstract syntax tree from the tokens and pass the tree to the evaluator. 
+// all the top-level expressionParser requires is a stream of tokens. This
+// isn't typical of a parser. Instead a parser would normally construct an
+// abstract syntax tree from the tokens and pass the tree to the evaluator.
 
-// a parser for a real programming language would construct a syntax tree 
-// of all the source code and either call upon a different parser for the 
-// expression parts (to construct the correct trees given associativity and 
+// a parser for a real programming language would construct a syntax tree
+// of all the source code and either call upon a different parser for the
+// expression parts (to construct the correct trees given associativity and
 // precedence) or leave the expression trees deliberately "incorrect" and call
-// upon different evaluators for expressions and statements. That way the 
-// parser could still assert the source code was valid. It's a trade-off 
+// upon different evaluators for expressions and statements. That way the
+// parser could still assert the source code was valid. It's a trade-off
 // between complicating the parser by having it do a bit of evaluation
 // to simplify future evaluation or complicate the evaluator.
 
@@ -56,7 +56,7 @@ let parseDigit = function
     | hd :: tl ->
         match hd with
         |'0'|'1'|'2'|'3'|'4'
-        |'5'|'6'|'7'|'8'|'9' as digit -> 
+        |'5'|'6'|'7'|'8'|'9' as digit ->
             Some (Char.GetNumericValue(digit) |> int, tl)
         | _ -> None
     | _ -> None
@@ -122,7 +122,7 @@ test <@ parseParen (")" |> toArray) = Some(RParen, []) @>
 test <@ parseParen (")+1" |> toArray) = Some(RParen, ['+'; '1']) @>
 
 // val parseUnaryOp : input:char list -> (Token * char list) option
-let parseUnaryOp input =  
+let parseUnaryOp input =
     match input with
     | hd :: tl ->
         match hd with
@@ -144,31 +144,31 @@ let parseExpression input =
 
     // val parse' : Token list -> char list -> Token list
     let rec parse' tokens rest =
-        match parseInteger rest with 
+        match parseInteger rest with
         | Some (integer, tl) -> parse' (integer :: tokens) tl
         | _ ->
             match parseUnaryOp rest with
-            | Some (unaryOp, tl) -> 
-                let isPrevTokenBinaryOp token = 
-                    [BinPlusOp; BinMinOp; BinMinOp; BinDivOp; BinExpOp; LParen] 
+            | Some (unaryOp, tl) ->
+                let isPrevTokenBinaryOp token =
+                    [BinPlusOp; BinMinOp; BinMinOp; BinDivOp; BinExpOp; LParen]
                     |> List.exists (fun o -> o = token)
-                if tokens = List.empty || 
+                if tokens = List.empty ||
                    isPrevTokenBinaryOp (List.head tokens) then
                     parse' (unaryOp :: tokens) tl
-                else 
+                else
                     // no? Must be BinPlusOp or BinMinOp instead then
                     match unaryOp with
-                    | UnaryMinOp -> parse' (BinMinOp :: tokens) tl 
+                    | UnaryMinOp -> parse' (BinMinOp :: tokens) tl
                     | UnaryPlusOp -> parse' (BinPlusOp :: tokens) tl
                     | _ -> failwith "Should never happen"
-            | _ -> 
+            | _ ->
                 match parseBinOp rest with
                 | Some (binOp, tl) -> parse' (binOp :: tokens) tl
                 | _ ->
                     match parseParen rest with
                     | Some (paren, tl) -> parse' (paren :: tokens) tl
                     | _ -> tokens
-        
+
     parse' [] (input |> toArray) |> List.rev
 
 test <@ parseExpression "" = [] @>
@@ -178,19 +178,19 @@ test <@ parseExpression "1-2" = [Integer 1; BinMinOp; Integer 2] @>
 
 // is this legal math syntax? PowerShell can only parse "1-(-2)"
 // whereas LibreOffice parses and evaluates "1--2"
-test <@ parseExpression "1--2" = 
+test <@ parseExpression "1--2" =
             [Integer 1; BinMinOp; UnaryMinOp; Integer 2] @>
 test <@ parseExpression "-1" = [UnaryMinOp; Integer 1] @>
 test <@ parseExpression "+1" = [UnaryPlusOp; Integer 1] @>
-test <@ parseExpression "1+-2" = 
+test <@ parseExpression "1+-2" =
             [Integer 1; BinPlusOp; UnaryMinOp; Integer 2] @>
 test <@ parseExpression "-(1+2*3/4^5)" =
-            [UnaryMinOp; LParen; Integer 1; BinPlusOp; Integer 2; BinMulOp; 
+            [UnaryMinOp; LParen; Integer 1; BinPlusOp; Integer 2; BinMulOp;
              Integer 3; BinDivOp; Integer 4; BinExpOp; Integer 5; RParen] @>
 
 (*
     Shunting Yard algorithm
-    
+
       while tokens to be read
         read token
         if token is operand then push onto operand stack
@@ -238,9 +238,9 @@ let operators = Stack<Token>()
 let operands = Stack<Token>()
 
 // val lookupOperator : token:Token -> int * Associativity
-let lookupOperator token = 
-    configuration 
-    |> List.find (fun (t, _, _) -> token = t) 
+let lookupOperator token =
+    configuration
+    |> List.find (fun (t, _, _) -> token = t)
     |> fun (_, p, a) -> p, a
 
 // val isOperand : _arg1:Token -> bool
@@ -260,7 +260,7 @@ let isBinaryOperator = function
     | _ -> false
 
 // val reduceExpression : unit -> unit
-let reduceExpression() = 
+let reduceExpression() =
     let extractValue t =
         match t with
         | Integer i -> i
@@ -279,12 +279,12 @@ let reduceExpression() =
         | BinMinOp -> operands.Push(Integer (left - right))
         | BinMulOp -> operands.Push(Integer (left * right))
         | BinDivOp -> operands.Push(Integer (left / right))
-        | BinExpOp -> 
+        | BinExpOp ->
             operands.Push(Integer (Math.Pow(float left, float right) |> int))
         | _ -> failwithf "Unsupported operator %A" operator
 
-// depending on your definition of a parser, this one is either a Shunting 
-// Yard expression parser or an evaluator. If you only wish to do one 
+// depending on your definition of a parser, this one is either a Shunting
+// Yard expression parser or an evaluator. If you only wish to do one
 // thing with the input, such as evaluate the expression to an integer,
 // the below code suffices. However, the Shunting Yard algorithm may
 // also be used to construct syntax trees from tokens. The algorithm
@@ -308,23 +308,23 @@ let evaluateExpression tokens =
 
             // if token is binary operator, o1, then
             else if isBinaryOperator hd then
-                // while operator token, o2, at top of operator stack, and
+                // while operator token, o2, at top of operator stack, and
                 //     either o1 is left associative and its precedence <= o2
                 //     or o1 is right associative and its precedence < o2
                 //   reduce expression
                 // push o1 onto the operator stack
                 let pO1, aO1 = lookupOperator hd
-                let isReduceRequired operator =                 
-                    let o2 = 
-                        if isBinaryOperator(operator) 
-                        then Some (lookupOperator(operator)) 
+                let isReduceRequired operator =
+                    let o2 =
+                        if isBinaryOperator(operator)
+                        then Some (lookupOperator(operator))
                         else None
                     match o2 with
-                    | Some(pO2, aO2) -> 
+                    | Some(pO2, aO2) ->
                         (aO1 = Left && pO1 <= pO2) || (aO1 = Right && pO1 < pO2)
                     | None -> false
 
-                while operators.Count > 0 && isReduceRequired(operators.Peek()) do 
+                while operators.Count > 0 && isReduceRequired(operators.Peek()) do
                     reduceExpression()
                 operators.Push(hd)
 
@@ -334,10 +334,10 @@ let evaluateExpression tokens =
             // if token is right paren
             else if hd = RParen then
                 // until token at top of operator stack is left paren
-                while operators.Count > 0 && operators.Peek() <> LParen do 
+                while operators.Count > 0 && operators.Peek() <> LParen do
                     reduceExpression()
 
-                // if operator stack runs out without finding left paren 
+                // if operator stack runs out without finding left paren
                 // then mismatched parens
                 if operators.Count = 0 then failwith "Unmatched parens"
 
@@ -346,10 +346,10 @@ let evaluateExpression tokens =
 
             eval tl
         | [] ->
-            // when no more tokens to readand
+            // when no more tokens to read and
             // while still tokens on operator stack
             while operators.Count > 0 do
-                // if operator token on top of stack is paren 
+                // if operator token on top of stack is paren
                 // then mismatched parens
                 if operators.Peek() = LParen || operators.Peek() = RParen then
                     failwith "Unmatched paren"
@@ -363,7 +363,7 @@ let evaluateExpression tokens =
     eval tokens
 
 // val eval : (string -> Token)
-let eval = parseExpression >> evaluateExpression 
+let eval = parseExpression >> evaluateExpression
 
 test <@ "1" |> eval = Integer 1 @>
 test <@ "-1" |> eval = Integer -1 @>

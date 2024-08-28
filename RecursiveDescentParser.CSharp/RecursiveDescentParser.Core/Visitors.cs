@@ -70,7 +70,7 @@ public class Interpreter : IExpressionVisitor<double>
 public class GraphvizVisualizer : IExpressionVisitor<string>
 {
     public string Evaluate(IExpression expr) => expr.Accept(this);
-    
+
     public string Visit(IntegerLiteral literal)
     {
         throw new NotImplementedException();
