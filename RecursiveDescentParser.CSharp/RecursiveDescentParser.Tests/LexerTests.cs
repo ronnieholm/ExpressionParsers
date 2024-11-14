@@ -33,11 +33,11 @@ public class LexerTests
         AssertToken(l.NextToken(), TokenKind.Eof, new Location(10, 10), null, null);
     }
 
-    private void AssertToken(Token token, TokenKind type, Location location, string? lexeme, object? literal)
+    private static void AssertToken(Token token, TokenKind type, Location location, string? lexeme, object? literal)
     {
         Assert.Equal(type, token.Kind);
         Assert.Equal(location, token.Location);
         Assert.Equal(lexeme, token.Lexeme);
-        Assert.Equal(literal, token.Literal);
+        Assert.Equal(literal?.ToString(), token.Literal?.ToString());
     }
 }

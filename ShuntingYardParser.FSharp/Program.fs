@@ -20,7 +20,7 @@ open Swensen.Unquote
 // Integer := Digit+
 
 // all the top-level expressionParser requires is a stream of tokens. This
-// isn't typical of a parser. Instead a parser would normally construct an
+// isn't typical of a parser. Instead, a parser would normally construct an
 // abstract syntax tree from the tokens and pass the tree to the evaluator.
 
 // a parser for a real programming language would construct a syntax tree
@@ -74,9 +74,9 @@ let parseInteger input =
         | Some (digit, rest) -> parse' rest (digit :: digits)
         | None -> (digits, input)
 
-    let (digits, tl) = parse' input []
+    let digits, tl = parse' input []
     let s = digits |> List.rev |> List.fold (fun acc d -> acc + d.ToString()) ""
-    let (isInteger, integer) = Int32.TryParse(s)
+    let isInteger, integer = Int32.TryParse(s)
     if isInteger then Some(Integer(integer), tl) else None
 
 test <@ parseInteger ("" |> toArray) = None @>
@@ -264,7 +264,7 @@ let reduceExpression() =
     let extractValue t =
         match t with
         | Integer i -> i
-        | _ -> failwithf "Unsupported %A" t
+        | _ -> failwithf $"Unsupported %A{t}"
 
     let operator = operators.Pop()
     if operator = UnaryMinOp then
@@ -281,7 +281,7 @@ let reduceExpression() =
         | BinDivOp -> operands.Push(Integer (left / right))
         | BinExpOp ->
             operands.Push(Integer (Math.Pow(float left, float right) |> int))
-        | _ -> failwithf "Unsupported operator %A" operator
+        | _ -> failwithf $"Unsupported operator %A{operator}"
 
 // depending on your definition of a parser, this one is either a Shunting
 // Yard expression parser or an evaluator. If you only wish to do one

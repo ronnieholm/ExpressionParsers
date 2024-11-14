@@ -3,13 +3,10 @@ using ShuntingYardParser.CSharp.Lexer;
 
 namespace ShuntingYardParser.CSharp.InfixToAbstractSyntaxTree;
 
-public class InfixToAbstractSyntaxTreeParser : ShuntingYardParser<Expression>
+public class InfixToAbstractSyntaxTreeParser(ExpressionLexer lexer) : ShuntingYardParser<Expression>(lexer)
 {
-    public InfixToAbstractSyntaxTreeParser(ExpressionLexer lexer) : base(lexer)
-    {
-    }
-
-    protected override void PushOperand(Token t) => Operands.Push(new Literal(int.Parse(t.Lexeme)));
+    protected override void PushOperand(Token t) =>
+        Operands.Push(new Literal(int.Parse(t.Lexeme)));
 
     protected override void ReduceExpression()
     {
@@ -20,7 +17,6 @@ public class InfixToAbstractSyntaxTreeParser : ShuntingYardParser<Expression>
         {
             Expression operand = Operands.Pop();
             result = new UnaryMinus(operand);
-            Operands.Push(result);
         }
         else
         {
@@ -36,8 +32,8 @@ public class InfixToAbstractSyntaxTreeParser : ShuntingYardParser<Expression>
                 TokenType.BinaryExp => new BinaryExp(left, right),
                 _ => throw new ArgumentException($"Unsupported operator: {op.Lexeme}")
             };
-
-            Operands.Push(result);
         }
+
+        Operands.Push(result);
     }
 }

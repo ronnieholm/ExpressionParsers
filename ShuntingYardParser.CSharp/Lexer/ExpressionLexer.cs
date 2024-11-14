@@ -12,10 +12,10 @@ namespace ShuntingYardParser.CSharp.Lexer;
 
 public class ExpressionLexer
 {
-    public List<Token> Tokenize(string expression)
+    public static List<Token> Tokenize(string expression)
     {
         List<Token> tokens = new List<Token>();
-        string lexeme = "";
+        var lexeme = "";
 
         foreach (char c in expression)
         {
@@ -25,7 +25,7 @@ public class ExpressionLexer
                 continue;
             }
 
-            if (c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '(' || c == ')')
+            if (c is '+' or '-' or '*' or '/' or '^' or '(' or ')')
             {
                 if (lexeme.Length > 0)
                 {

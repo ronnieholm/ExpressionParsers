@@ -90,33 +90,28 @@ public record Token(
     string? Lexeme,
     object? Literal);
 
-public class Lexer
+public class Lexer(string input)
 {
-    private readonly string _input;
-
     // Offset to the first character in the lexeme being scanned.
     private int _start;
     
     // Offset to the character currently being considered.
     private int _current;
 
-    private char CurrentCharacter => _current < _input.Length ? _input[_current] : '\0';
+    private char CurrentCharacter =>
+        _current < input.Length ? input[_current] : '\0';
 
-    public Lexer(string input)
-    {
-        // No lexer state to initialize except for input because _current is
-        // default initialized and _currentChar is computed based on _current.
-        _input = input;
-    }
+    // No lexer state to initialize except for input because _current is
+    // default initialized and _currentChar is computed based on _current.
 
     public Token NextToken()
     {
-        // Alternative: we could've started off with 
+        // Alternative: we could've started of with 
         //
         // while (char.IsWhiteSpace(GetCurrentCharacter())) 
         //     _currentPos++;
         //
-        // to consume leading whitespace. Instead we handle whitespace in the
+        // to consume leading whitespace. Instead, we handle whitespace in the
         // switch statement using a goto statement. This provides a uniform
         // treatment of characters. Consuming whitespace like above biases the
         // lexer toward whitespace. For each character, the while expression is
@@ -126,7 +121,7 @@ public class Lexer
 next:
         // Reset _start below next label or whitespace becomes part of lexeme.
         _start = _current;
-        if (_current >= _input.Length)
+        if (_current >= input.Length)
             return new Token(TokenKind.Eof, new Location(_start, _current), null, null);
 
         switch (CurrentCharacter)
@@ -165,25 +160,25 @@ next:
                 return new Token(TokenKind.Integer, new Location(_start, _current), intString, long.Parse(intString, CultureInfo.InvariantCulture));
             case '+':
                 _current++;
-                return new Token(TokenKind.Plus, new Location(_start, _current), _input[_start.._current], null);
+                return new Token(TokenKind.Plus, new Location(_start, _current), input[_start.._current], null);
             case '-':
                 _current++;
-                return new Token(TokenKind.Minus, new Location(_start, _current), _input[_start.._current], null);
+                return new Token(TokenKind.Minus, new Location(_start, _current), input[_start.._current], null);
             case '*':
                 _current++;
-                return new Token(TokenKind.Multiplication, new Location(_start, _current), _input[_start.._current], null);
+                return new Token(TokenKind.Multiplication, new Location(_start, _current), input[_start.._current], null);
             case '/':
                 _current++;
-                return new Token(TokenKind.Division, new Location(_start, _current), _input[_start.._current], null);
+                return new Token(TokenKind.Division, new Location(_start, _current), input[_start.._current], null);
             case '^':
                 _current++;
-                return new Token(TokenKind.Power, new Location(_start, _current), _input[_start.._current], null);
+                return new Token(TokenKind.Power, new Location(_start, _current), input[_start.._current], null);
             case '(':
                 _current++;
-                return new Token(TokenKind.LParen, new Location(_start, _current), _input[_start.._current], null);
+                return new Token(TokenKind.LParen, new Location(_start, _current), input[_start.._current], null);
             case ')':
                 _current++;
-                return new Token(TokenKind.RParen, new Location(_start, _current), _input[_start.._current], null);
+                return new Token(TokenKind.RParen, new Location(_start, _current), input[_start.._current], null);
             case ' ':
             case '\n':
             case '\r':
@@ -193,20 +188,20 @@ next:
                 goto next;
             default:
                 _current++;
-                return new Token(TokenKind.Illegal, new Location(_start, _current), _input[_start.._current], null);
+                return new Token(TokenKind.Illegal, new Location(_start, _current), input[_start.._current], null);
         }
     }
 
     // Integer = Digit | Integer Digit
     private string LexInteger()
     {
-        // Don't parse by returning a Int32 or Int64. Instead return the integer
+        // Don't parse by returning a Int32 or Int64. Instead, return the integer
         // as a string and leave it to the parser to interpret it. It may be the
         // integer is too large for the Int32 or Int64.
         var start = _current;
         while (char.IsDigit(CurrentCharacter))
             _current++;
-        return _input[start.._current];
+        return input[start.._current];
     }
 
     // Float = Integer "." Integer
@@ -219,7 +214,7 @@ next:
             ReportSyntaxError("digit");
         LexInteger();
         var end = _current;
-        return _input[start..end];
+        return input[start..end];
     }
 
     private void ReportSyntaxError(string expected)

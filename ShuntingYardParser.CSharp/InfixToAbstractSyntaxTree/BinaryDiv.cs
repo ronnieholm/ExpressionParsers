@@ -16,25 +16,30 @@ public abstract record Expression
 
 public record BinaryDiv(Expression LeftOperand, Expression RightOperand) : Expression
 {
-    public override int Evaluate() => LeftOperand.Evaluate() / RightOperand.Evaluate();
+    public override int Evaluate() =>
+        LeftOperand.Evaluate() / RightOperand.Evaluate();
 }
 
 public record BinaryExp(Expression LeftOperand, Expression RightOperand) : Expression
 {
-    public override int Evaluate() => (int)Math.Pow(LeftOperand.Evaluate(), RightOperand.Evaluate());
+    public override int Evaluate() =>
+        (int)Math.Pow(LeftOperand.Evaluate(), RightOperand.Evaluate());
 }
 
 public record BinaryMinus(Expression LeftOperand, Expression RightOperand) : Expression
 {
-    public override int Evaluate() => LeftOperand.Evaluate() - RightOperand.Evaluate();
+    public override int Evaluate() =>
+        LeftOperand.Evaluate() - RightOperand.Evaluate();
 }
 
 public record BinaryMul(Expression LeftOperand, Expression RightOperand) : Expression
 {
-    public override int Evaluate() => LeftOperand.Evaluate() * RightOperand.Evaluate();
+    public override int Evaluate() =>
+        LeftOperand.Evaluate() * RightOperand.Evaluate();
 }
 
 public record BinaryPlus(Expression LeftOperand, Expression RightOperand) : Expression
 {
-    public override int Evaluate() => LeftOperand.Evaluate() + RightOperand.Evaluate();
+    public override int Evaluate() =>
+        LeftOperand.Evaluate() + RightOperand.Evaluate();
 }

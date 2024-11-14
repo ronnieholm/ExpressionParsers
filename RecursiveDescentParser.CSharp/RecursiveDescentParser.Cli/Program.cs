@@ -3,9 +3,9 @@ using static System.Console;
 
 namespace RecursiveDescentParser.Cli;
 
-static class Program
+internal static class Program
 {
-    static void Main()
+    private static void Main()
     {         
         WriteLine("Enter expression. Press Ctrl-c to exit.");
         while (true)

@@ -3,16 +3,10 @@ using ShuntingYardParser.CSharp.Parser;
 
 namespace ShuntingYardParser.CSharp.InfixToPrefix;
 
-public class InfixToPrefixParser : ShuntingYardParser<Token>
+public class InfixToPrefixParser(ExpressionLexer lexer) : ShuntingYardParser<Token>(lexer)
 {
-    public InfixToPrefixParser(ExpressionLexer lexer) : base(lexer)
-    {
-    }
-
-    protected override void PushOperand(Token t)
-    {
+    protected override void PushOperand(Token t) =>
         Operands.Push(t);
-    }
 
     protected override void ReduceExpression()
     {

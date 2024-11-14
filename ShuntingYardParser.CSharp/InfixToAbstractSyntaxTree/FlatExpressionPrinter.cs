@@ -13,7 +13,7 @@ public static class FlatExpressionPrinter
             BinaryDiv div => $"/({Print(div.LeftOperand)}, {Print(div.RightOperand)})",
             BinaryExp exp => $"^({Print(exp.LeftOperand)}, {Print(exp.RightOperand)})",
             Literal literal => literal.Value.ToString(),
-            _ => throw new ArgumentException("Unsupported type: " + e)
+            _ => throw new ArgumentException($"Unsupported type: {e}")
         };
     }
 }

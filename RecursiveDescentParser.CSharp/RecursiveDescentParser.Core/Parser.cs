@@ -71,9 +71,8 @@ public class Parser
         //
         // This parser deals correctly with associativity, as in a - b - c,
         // because ParseAddition first consumes a. Then the while loop will
-        // consume consume b, keeping track of the accumulated value. From
-        // accumulated value, it'll subtract c, effectively computing (a - b) -
-        // c.
+        // consume b, keeping track of the accumulated value. From accumulated
+        // value, it'll subtract c, effectively computing (a - b) - c.
         //
         // Alternative: we could extend the hardcoded operators with a
         // table-driven approach for an extensible grammar. Then instead of
@@ -249,7 +248,7 @@ public class Parser
         // here. Syntax errors reported deal with known tokens in unexpected
         // places, such as "2+(" as well as unknown tokens, such as%, which the
         // lexer returns with a token kind of Illegal.
-        ReportSyntaxError(new[] { TokenKind.Integer, TokenKind.Float, TokenKind.LParen });
+        ReportSyntaxError([TokenKind.Integer, TokenKind.Float, TokenKind.LParen]);
         throw new UnreachableException();
     }
 
@@ -274,7 +273,7 @@ public class Parser
             ReportSyntaxError(kind);
     }
 
-    private void ReportSyntaxError(TokenKind expected) => ReportSyntaxError(new[] {expected});
+    private void ReportSyntaxError(TokenKind expected) => ReportSyntaxError([expected]);
 
     private void ReportSyntaxError(TokenKind[] expected)
     {           

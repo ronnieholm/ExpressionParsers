@@ -5,7 +5,7 @@ using System.Globalization;
 namespace RecursiveDescentParser.Core;
 
 // Strictly speaking, we don't require the Evaluate method on each IExpressionVisitor
-// implementation, and it isn't part of the interface. Instead we could call the Visit
+// implementation, and it isn't part of the interface. Instead, we could call the Visit
 // method and correct overload is determined by the compiler. The Evaluate method is
 // useful, though, in contexts which require initial setup.
 
